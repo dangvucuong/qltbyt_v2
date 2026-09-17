@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QLTBYT.API", "QLTBYT.API\QLTBYT.API.csproj", "{0A9C8BD1-5603-4B4D-A72D-C171F1464109}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QLTBYT.API.Tests", "QLTBYT.API.Tests\QLTBYT.API.Tests.csproj", "{033002A6-BBAB-441E-8D3B-CC94AD5F8DC9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0A9C8BD1-5603-4B4D-A72D-C171F1464109}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A9C8BD1-5603-4B4D-A72D-C171F1464109}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A9C8BD1-5603-4B4D-A72D-C171F1464109}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A9C8BD1-5603-4B4D-A72D-C171F1464109}.Release|Any CPU.Build.0 = Release|Any CPU
+		{033002A6-BBAB-441E-8D3B-CC94AD5F8DC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{033002A6-BBAB-441E-8D3B-CC94AD5F8DC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{033002A6-BBAB-441E-8D3B-CC94AD5F8DC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{033002A6-BBAB-441E-8D3B-CC94AD5F8DC9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

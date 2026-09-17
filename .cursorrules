@@ -1,0 +1,811 @@
+# ============================================================
+# .cursorrules — QLTBYT v2.0
+# Quản Lý Thiết Bị Y Tế — Kiến trúc mới
+# Frontend: React 18 + TypeScript + Vite + Ant Design
+# Backend:  .NET 7 Web API (C#) + EF Core + JWT
+# Database: SQL Server (db_QLTBYT) — giữ nguyên schema
+# ============================================================
+
+## 1. TỔNG QUAN HỆ THỐNG
+
+Đây là hệ thống **Quản Lý Thiết Bị Y Tế (QLTBYT)** đang được nâng cấp từ ASP.NET WebForms (VB.NET) + DevExpress sang kiến trúc hiện đại:
+
+```
+React 18 (SPA)  ←—— HTTP/REST + JWT ——→  .NET 7 Web API  ←——→  SQL Server (db_QLTBYT)
+```
+
+**Nguyên tắc cốt lõi:**
+- Tất cả text hiển thị viết **tiếng Việt**
+- Backend là RESTful API thuần túy, không server-side render
+- Frontend là SPA (Single Page Application)
+- Stateless auth bằng JWT Bearer Token
+
+---
+
+## 2. STACK CÔNG NGHỆ
+
+### Frontend (`qltbyt-frontend/`)
+| Thư viện | Phiên bản | Mục đích |
+|---|---|---|
+| React | 18.x | UI framework |
+| TypeScript | 5.x | Type safety |
+| Vite | 5.x | Build tool / Dev server |
+| React Router DOM | 6.x | Client-side routing |
+| Ant Design (antd) | 5.x | UI component library (thay DevExpress) |
+| @ant-design/icons | 5.x | Icon set |
+| @tanstack/react-query | 5.x | Data fetching & cache |
+| Zustand | 4.x | Global state management |
+| Axios | 1.x | HTTP client |
+| Recharts | 2.x | Charts (thay DevExpress Charts) |
+| react-dropzone | 14.x | File upload (thay ASPxUpload) |
+| qrcode.react | 3.x | Hiển thị QR code |
+| @zxing/browser | 0.1.x | Scan QR qua camera |
+| react-webcam | 7.x | Truy cập camera |
+| react-pdf | 7.x | Xem PDF + chọn vị trí ký |
+| dayjs | 1.x | Xử lý date/time |
+| xlsx | 0.18.x | Đọc file Excel phía client |
+
+### Backend (`QLTBYT.API/`)
+| Package | Phiên bản | Mục đích |
+|---|---|---|
+| Microsoft.EntityFrameworkCore.SqlServer | 7.x | ORM |
+| Microsoft.AspNetCore.Authentication.JwtBearer | 7.x | JWT Auth |
+| BCrypt.Net-Next | 4.0.3 | Hash mật khẩu |
+| AutoMapper | 12.x | Entity ↔ DTO mapping |
+| FluentValidation.AspNetCore | 11.x | Validate request |
+| Swashbuckle.AspNetCore | 6.x | Swagger / OpenAPI |
+| MailKit | 4.x | Gửi email |
+| FirebaseAdmin | 2.x | Push notification FCM v1 |
+| QRCoder | 1.4.3 | Generate QR code |
+| EPPlus | 7.x | Export/Import Excel |
+| itext7 | 8.x | Ký số PDF |
+| Serilog.AspNetCore | 7.x | Logging |
+| NPOI | 2.x | Đọc/ghi Excel (alternative) |
+
+---
+
+## 3. CẤU TRÚC PROJECT
+
+### Backend — QLTBYT.API/
+```
+QLTBYT.API/
+├── Program.cs                        ← DI, middleware pipeline, CORS, Swagger, JWT
+├── appsettings.json                  ← Config (không commit thông tin nhạy cảm)
+├── appsettings.Development.json      ← Local dev config
+│
+├── Controllers/                      ← API endpoints, mỏng nhất có thể
+│   ├── AuthController.cs
+│   ├── DevicesController.cs
+│   ├── DeviceEventsController.cs
+│   ├── DeviceFilesController.cs
+│   ├── DeviceAccessoriesController.cs
+│   ├── DeviceUsageLogsController.cs
+│   ├── LegalDocumentsController.cs
+│   ├── OrganizationsController.cs
+│   ├── PersonnelController.cs
+│   ├── UsersController.cs
+│   ├── BiddingPackagesController.cs
+│   ├── NotificationsController.cs
+│   ├── ReportsController.cs
+│   ├── DashboardController.cs
+│   ├── MasterDataController.cs
+│   └── DocumentSignController.cs
+│
+├── Models/
+│   ├── Domain/                       ← EF Core entities (ánh xạ 1-1 với DB tables)
+│   │   ├── Device.cs                 ← Quanlythietbi
+│   │   ├── UserAccount.cs            ← Taikhoan
+│   │   ├── Organization.cs           ← QuanlyDV
+│   │   ├── Personnel.cs              ← QuanlyNhansu
+│   │   ├── DeviceLog.cs              ← LogThietbi
+│   │   ├── DeviceFile.cs             ← Quanlyfile
+│   │   ├── DeviceAccessory.cs        ← Quanlyvattu
+│   │   ├── LegalDocument.cs          ← ThongtinHS
+│   │   ├── BiddingPackage.cs         ← Goithau
+│   │   ├── Notification.cs           ← Thongbao
+│   │   ├── DeviceCode.cs             ← QuanlyMa (QR/NFC)
+│   │   ├── UsageLog.cs               ← InputByDate
+│   │   └── SystemLog.cs              ← LogHethong
+│   │
+│   └── DTOs/                         ← Request/Response objects (không expose entity)
+│       ├── Auth/
+│       │   ├── LoginRequest.cs
+│       │   ├── LoginResponse.cs
+│       │   └── ChangePasswordRequest.cs
+│       ├── Device/
+│       │   ├── DeviceListDto.cs
+│       │   ├── DeviceDetailDto.cs
+│       │   ├── CreateDeviceRequest.cs
+│       │   └── UpdateDeviceRequest.cs
+│       └── Common/
+│           ├── PagedResult.cs
+│           └── ApiResponse.cs
+│
+├── Services/                         ← Business logic (interface + implementation)
+│   ├── IAuthService.cs / AuthService.cs
+│   ├── IDeviceService.cs / DeviceService.cs
+│   ├── IEmailService.cs / EmailService.cs
+│   ├── IPushNotificationService.cs / FirebasePushService.cs
+│   ├── IReportService.cs / ReportService.cs
+│   ├── IFileStorageService.cs / LocalFileStorageService.cs
+│   ├── IQRCodeService.cs / QRCodeService.cs
+│   └── IPdfSignService.cs / PdfSignService.cs
+│
+├── Data/
+│   ├── AppDbContext.cs
+│   └── Configurations/               ← EF Core Fluent API
+│
+├── Middleware/
+│   ├── ErrorHandlingMiddleware.cs
+│   └── RequestLoggingMiddleware.cs
+│
+├── Helpers/
+│   ├── JwtHelper.cs
+│   ├── PasswordHasher.cs
+│   └── ExcelHelper.cs
+│
+└── Infrastructure/
+    └── BackgroundServices/
+        └── DeviceExpiryNotificationJob.cs
+```
+
+### Frontend — qltbyt-frontend/src/
+```
+src/
+├── main.tsx
+├── App.tsx
+│
+├── api/                              ← Axios instances & API functions
+│   ├── axiosClient.ts                ← Base instance + JWT interceptor
+│   ├── authApi.ts
+│   ├── deviceApi.ts
+│   ├── reportApi.ts
+│   └── ...
+│
+├── components/                       ← Shared/reusable components
+│   ├── Layout/
+│   │   ├── MainLayout.tsx
+│   │   ├── Sidebar.tsx
+│   │   └── Header.tsx
+│   ├── Common/
+│   │   ├── DataTable.tsx             ← Wrapper quanh Ant Design Table
+│   │   ├── SearchBar.tsx
+│   │   ├── FileUpload.tsx
+│   │   ├── QRScanner.tsx
+│   │   ├── QRCodeDisplay.tsx
+│   │   └── NotificationBell.tsx
+│   └── Charts/
+│       ├── BarChart.tsx
+│       ├── PieChart.tsx
+│       └── LineChart.tsx
+│
+├── pages/                            ← Một page component = một trang .aspx cũ
+│   ├── Login/
+│   ├── Dashboard/
+│   ├── Devices/
+│   │   ├── DeviceList.tsx            ← Timkiem.aspx
+│   │   ├── DeviceCreate.tsx          ← Themdulieu.aspx
+│   │   ├── DeviceEdit.tsx            ← edit.aspx
+│   │   ├── DeviceDetail.tsx          ← view.aspx
+│   │   └── DeviceImport.tsx          ← import.aspx
+│   ├── Events/
+│   │   ├── EventList.tsx             ← log.aspx / loga.aspx
+│   │   ├── ReportIncident.tsx        ← guiyc.aspx
+│   │   └── ResolveEvent.tsx          ← xuly.aspx
+│   ├── Reports/                      ← baocao.aspx, baocaoTS.aspx, baocaokho.aspx
+│   ├── Organizations/                ← donvi.aspx, khoaphong.aspx
+│   ├── Personnel/                    ← quanlynhansu.aspx
+│   ├── Users/                        ← taikhoan.aspx
+│   ├── BiddingPackages/              ← goithau.aspx
+│   ├── Notifications/                ← thongbao.aspx
+│   └── Settings/                     ← Master data management
+│
+├── hooks/                            ← Custom React hooks
+│   ├── useAuth.ts
+│   ├── useDevices.ts
+│   └── useNotifications.ts
+│
+├── store/                            ← Zustand global state
+│   ├── authStore.ts
+│   └── notificationStore.ts
+│
+├── types/                            ← TypeScript interfaces
+│   ├── device.ts
+│   ├── user.ts
+│   └── ...
+│
+└── utils/
+    ├── formatters.ts                 ← Format tiền, ngày, trạng thái...
+    └── validators.ts
+```
+
+---
+
+## 4. QUY ƯỚC ĐẶT TÊN
+
+### Backend (C#)
+- **Namespace**: `QLTBYT.API.Controllers`, `QLTBYT.API.Services`, v.v.
+- **Class**: `PascalCase` — `DevicesController`, `DeviceService`
+- **Method**: `PascalCase` — `GetDeviceById`, `CreateDevice`
+- **Variable/param**: `camelCase` — `deviceId`, `pageSize`
+- **Interface**: Prefix `I` — `IDeviceService`
+- **DTO suffix**: `Dto`, `Request`, `Response` — `DeviceListDto`, `CreateDeviceRequest`
+- **Async methods**: Suffix `Async` — `GetDeviceByIdAsync`
+
+### Frontend (TypeScript/React)
+- **Component file**: `PascalCase.tsx` — `DeviceList.tsx`
+- **Hook file**: `camelCase.ts` — `useDevices.ts`
+- **Type/Interface**: `PascalCase` — `interface DeviceDto`, `type ApiResponse<T>`
+- **Store**: `camelCase` + `Store` suffix — `authStore.ts`
+- **API function**: `camelCase` mô tả action — `getDevices()`, `createDevice()`
+- **CSS/style**: CSS Modules hoặc inline style với Ant Design `style` prop
+
+### API Endpoints (REST)
+- **Resource**: số nhiều, kebab-case — `/api/devices`, `/api/bidding-packages`
+- **Sub-resource**: `/api/devices/{id}/events`
+- **Actions**: dùng HTTP verbs thay vì action trong URL
+
+---
+
+## 5. API ENDPOINTS (Tổng hợp)
+
+### Auth
+```
+POST   /api/auth/login
+POST   /api/auth/change-password
+POST   /api/auth/forgot-password
+```
+
+### Devices (Thiết bị)
+```
+GET    /api/devices                          ?page&pageSize&search&donviId&loaiId&trangthaiId&tuNgay&denNgay&sapHetHanKiemDinh&sortBy&sortDir
+GET    /api/devices/{id}
+POST   /api/devices
+PUT    /api/devices/{id}
+DELETE /api/devices/{id}
+GET    /api/devices/{id}/children
+GET    /api/devices/{id}/logs
+GET    /api/devices/{id}/files
+GET    /api/devices/{id}/accessories
+POST   /api/devices/import
+GET    /api/devices/{id}/qrcode
+POST   /api/devices/{id}/qrcode
+PUT    /api/devices/{id}/qrcode
+POST   /api/devices/{id}/image
+GET    /api/devices/{id}/legal-documents
+PUT    /api/devices/{id}/legal-documents
+POST   /api/devices/{id}/legal-documents/files
+GET    /api/devices/{id}/events
+POST   /api/devices/{id}/events
+GET    /api/devices/{id}/usage-logs
+POST   /api/devices/{id}/usage-logs
+POST   /api/devices/{id}/transfer
+GET    /api/devices/{id}/transfer-history
+```
+
+### Events (Sự cố / Log)
+```
+GET    /api/events
+PUT    /api/events/{id}
+POST   /api/events/{id}/files
+GET    /api/events/keywords
+POST   /api/events/keywords
+```
+
+### Dashboard
+```
+GET    /api/dashboard/summary
+GET    /api/dashboard/by-department
+GET    /api/dashboard/by-status
+GET    /api/dashboard/by-type
+GET    /api/dashboard/expiring-soon
+```
+
+### Reports
+```
+GET    /api/reports/devices
+GET    /api/reports/devices/export
+GET    /api/reports/assets
+GET    /api/reports/assets/export
+GET    /api/reports/warehouse
+GET    /api/reports/maintenance
+```
+
+### Users / Personnel / Orgs
+```
+GET/POST       /api/users
+GET/PUT/DELETE /api/users/{id}
+GET/PUT        /api/users/me
+PUT            /api/users/{id}/password
+GET/POST       /api/personnel
+GET/PUT/DELETE /api/personnel/{id}
+GET/POST       /api/organizations
+GET/PUT/DELETE /api/organizations/{id}
+GET            /api/organizations/types
+GET/POST       /api/bidding-packages
+GET/PUT/DELETE /api/bidding-packages/{id}
+GET            /api/bidding-packages/{id}/devices
+```
+
+### Notifications
+```
+GET  /api/notifications
+PUT  /api/notifications/{id}/read
+PUT  /api/notifications/read-all
+GET  /api/notifications/unread-count
+```
+
+### Documents (PDF Ký số)
+```
+POST /api/documents/upload
+POST /api/documents/{docId}/sign
+GET  /api/documents/{docId}
+GET  /api/documents/certificates
+```
+
+### Master Data (Danh mục)
+```
+GET  /api/master/device-types          ← DMLoaiTB
+GET  /api/master/status                ← DMTrangthai
+GET  /api/master/org-types             ← DanhmucDV
+GET  /api/master/personnel-types       ← DanhmucLoaiNS
+GET  /api/master/document-types        ← DanhmucHoso
+GET  /api/master/task-types            ← DMTacvu
+GET  /api/master/countries             ← Country
+GET  /api/master/event-keywords        ← EventKeyword
+```
+
+---
+
+## 6. CODING PATTERNS
+
+### Backend — Controller (mỏng, chỉ delegate)
+```csharp
+[ApiController]
+[Route("api/[controller]")]
+[Authorize]
+public class DevicesController : ControllerBase
+{
+    private readonly IDeviceService _deviceService;
+
+    public DevicesController(IDeviceService deviceService)
+    {
+        _deviceService = deviceService;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<ApiResponse<PagedResult<DeviceListDto>>>> GetDevices(
+        [FromQuery] DeviceQueryParams queryParams)
+    {
+        var result = await _deviceService.GetDevicesAsync(queryParams);
+        return Ok(ApiResponse<PagedResult<DeviceListDto>>.Success(result));
+    }
+
+    [HttpPost]
+    [Authorize(Policy = "TechnicianAndAbove")]
+    public async Task<ActionResult<ApiResponse<DeviceDetailDto>>> CreateDevice(
+        [FromBody] CreateDeviceRequest request)
+    {
+        var device = await _deviceService.CreateDeviceAsync(request);
+        return CreatedAtAction(nameof(GetDevice), new { id = device.Id }, 
+            ApiResponse<DeviceDetailDto>.Success(device));
+    }
+}
+```
+
+### Backend — ApiResponse wrapper
+```csharp
+public class ApiResponse<T>
+{
+    public bool Success { get; set; }
+    public T? Data { get; set; }
+    public string? Message { get; set; }
+    public List<string>? Errors { get; set; }
+
+    public static ApiResponse<T> Success(T data, string? message = null) => 
+        new() { Success = true, Data = data, Message = message };
+    
+    public static ApiResponse<T> Fail(string message, List<string>? errors = null) => 
+        new() { Success = false, Message = message, Errors = errors };
+}
+```
+
+### Backend — PagedResult
+```csharp
+public class PagedResult<T>
+{
+    public List<T> Items { get; set; } = [];
+    public int TotalCount { get; set; }
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+    public int TotalPages => (int)Math.Ceiling((double)TotalCount / PageSize);
+}
+```
+
+### Backend — EF Core Entity (ví dụ Device)
+```csharp
+// Models/Domain/Device.cs
+[Table("Quanlythietbi")]
+public class Device
+{
+    [Key]
+    public int Id { get; set; }
+    
+    [Column("MaTB")]
+    public string? DeviceCode { get; set; }
+    
+    [Column("TenTB")]
+    public string? Name { get; set; }
+    
+    [Column("Trangthai")]
+    public int? StatusId { get; set; }
+    
+    [Column("Donvisudung")]
+    public int? OrganizationId { get; set; }
+    
+    [Column("hankiemdinh")]
+    public DateTime? InspectionExpiryDate { get; set; }
+    
+    // ... các property khác
+    
+    // Navigation properties
+    public virtual Organization? Organization { get; set; }
+}
+```
+
+### Backend — Service pattern
+```csharp
+public interface IDeviceService
+{
+    Task<PagedResult<DeviceListDto>> GetDevicesAsync(DeviceQueryParams query);
+    Task<DeviceDetailDto?> GetDeviceByIdAsync(int id);
+    Task<DeviceDetailDto> CreateDeviceAsync(CreateDeviceRequest request);
+    Task<DeviceDetailDto> UpdateDeviceAsync(int id, UpdateDeviceRequest request);
+    Task DeleteDeviceAsync(int id);
+}
+
+public class DeviceService : IDeviceService
+{
+    private readonly AppDbContext _context;
+    private readonly IMapper _mapper;
+
+    public DeviceService(AppDbContext context, IMapper mapper)
+    {
+        _context = context;
+        _mapper = mapper;
+    }
+
+    public async Task<PagedResult<DeviceListDto>> GetDevicesAsync(DeviceQueryParams query)
+    {
+        var queryable = _context.Devices.AsQueryable();
+        
+        if (!string.IsNullOrEmpty(query.Search))
+            queryable = queryable.Where(d => 
+                d.Name!.Contains(query.Search) || 
+                d.DeviceCode!.Contains(query.Search));
+        
+        var total = await queryable.CountAsync();
+        var items = await queryable
+            .Skip((query.Page - 1) * query.PageSize)
+            .Take(query.PageSize)
+            .ToListAsync();
+        
+        return new PagedResult<DeviceListDto>
+        {
+            Items = _mapper.Map<List<DeviceListDto>>(items),
+            TotalCount = total,
+            Page = query.Page,
+            PageSize = query.PageSize
+        };
+    }
+}
+```
+
+### Frontend — axiosClient với JWT interceptor
+```typescript
+// api/axiosClient.ts
+import axios from 'axios';
+import { useAuthStore } from '../store/authStore';
+
+const axiosClient = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+axiosClient.interceptors.request.use((config) => {
+  const token = useAuthStore.getState().token;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+axiosClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      useAuthStore.getState().logout();
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default axiosClient;
+```
+
+### Frontend — API function
+```typescript
+// api/deviceApi.ts
+import axiosClient from './axiosClient';
+import type { PagedResult, DeviceListDto, DeviceDetailDto, CreateDeviceRequest } from '../types/device';
+
+export const deviceApi = {
+  getDevices: (params: Record<string, unknown>) =>
+    axiosClient.get<ApiResponse<PagedResult<DeviceListDto>>>('/devices', { params }),
+
+  getDeviceById: (id: number) =>
+    axiosClient.get<ApiResponse<DeviceDetailDto>>(`/devices/${id}`),
+
+  createDevice: (data: CreateDeviceRequest) =>
+    axiosClient.post<ApiResponse<DeviceDetailDto>>('/devices', data),
+
+  updateDevice: (id: number, data: Partial<CreateDeviceRequest>) =>
+    axiosClient.put<ApiResponse<DeviceDetailDto>>(`/devices/${id}`, data),
+
+  deleteDevice: (id: number) =>
+    axiosClient.delete(`/devices/${id}`),
+};
+```
+
+### Frontend — React Query hook
+```typescript
+// hooks/useDevices.ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { deviceApi } from '../api/deviceApi';
+
+export const useDevices = (params: DeviceQueryParams) => {
+  return useQuery({
+    queryKey: ['devices', params],
+    queryFn: () => deviceApi.getDevices(params).then(r => r.data.data),
+  });
+};
+
+export const useCreateDevice = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deviceApi.createDevice,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['devices'] }),
+  });
+};
+```
+
+### Frontend — Zustand Auth Store
+```typescript
+// store/authStore.ts
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface AuthState {
+  token: string | null;
+  user: UserInfo | null;
+  login: (token: string, user: UserInfo) => void;
+  logout: () => void;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      token: null,
+      user: null,
+      login: (token, user) => set({ token, user }),
+      logout: () => set({ token: null, user: null }),
+    }),
+    { name: 'auth-storage' }
+  )
+);
+```
+
+---
+
+## 7. DATABASE SCHEMA — Bảng quan trọng
+
+### `Quanlythietbi` — Bảng CORE (Thiết bị)
+- `ID` PK, `MaTB` mã thiết bị, `TenTB` tên, `Loai` FK→DMLoaiTB
+- `Donvisudung` FK→QuanlyDV (khoa đang dùng), `Trangthai` FK→DMTrangthai
+- `hankiemdinh` DATE hạn kiểm định, `MocTGBH` DATETIME hết bảo hành
+- `Thietbichinh` FK→self (thiết bị cha/con), `idGoithau` FK→Goithau
+- `Dongia` FLOAT đơn giá, `Thanhtien` FLOAT nguyên giá
+
+### `Taikhoan` — Tài khoản
+- `LoaiTK`: 1=Admin, 2=Kỹ thuật, 3=Người dùng
+- `MaDV`: Chứa nhiều ID đơn vị ngăn cách `;` (**legacy** — nên dùng bảng join mới)
+- `Matkhau`: **Plain text trong DB cũ** → hash BCrypt khi migrate
+
+### `LogThietbi` — Sự kiện thiết bị
+- `Loai`: 1=Báo hỏng, 2=Đề nghị KT, 3=Yêu cầu khác, 4=Chuyển giao, 5=Đang xử lý
+- `Trangthai`: 1=Mới, 2=Đang chờ, 3=Quan trọng, 4=Đã xử lý
+
+### `DMTrangthai` — Trạng thái thiết bị
+- 1=Đang hoạt động, 2=Không hoạt động/Hỏng, 3=Chưa sử dụng, 8=Không hoạt động (variant)
+
+---
+
+## 8. PHÂN QUYỀN (Authorization)
+
+### Roles từ `Taikhoan.LoaiTK`:
+```csharp
+// Role names trong JWT claims
+"Admin"       // LoaiTK = 1 — Toàn quyền
+"Technician"  // LoaiTK = 2 — CRUD thiết bị, xử lý sự cố
+"User"        // LoaiTK = 3 — Xem, báo cáo sự cố
+```
+
+### Policies:
+```csharp
+options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
+options.AddPolicy("TechnicianAndAbove", p => p.RequireRole("Admin", "Technician"));
+options.AddPolicy("AllUsers", p => p.RequireRole("Admin", "Technician", "User"));
+```
+
+### Lọc dữ liệu theo đơn vị:
+- **Admin/Technician**: thấy tất cả thiết bị
+- **User thường**: chỉ thấy thiết bị của đơn vị mình (MaDV)
+- Logic này implement trong Service layer, không trong Controller
+
+---
+
+## 9. CẤU HÌNH
+
+### appsettings.json (Backend)
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=CUONG-PC\\SQLSERVER;Database=db_QLTBYT;User Id=sa;Password=zaq1ZAQ!;TrustServerCertificate=True"
+  },
+  "JwtSettings": {
+    "SecretKey": "your-very-long-secret-key-at-least-32-chars",
+    "Issuer": "QLTBYT-API",
+    "Audience": "QLTBYT-Frontend",
+    "ExpiryHours": 24
+  },
+  "EmailSettings": {
+    "SmtpHost": "smtp.gmail.com",
+    "SmtpPort": 587,
+    "Username": "appungbuou@gmail.com",
+    "FromName": "Hệ thống QLTBYT"
+  },
+  "Firebase": {
+    "ProjectId": "pushnotifcationios",
+    "ServiceAccountKeyPath": "firebase-service-account.json"
+  },
+  "FileStorage": {
+    "BasePath": "D:/DVC/PROJECT/QLTBTYT/QLTBYT/QLTBYT",
+    "MaxFileSizeMB": 50
+  },
+  "NotificationSettings": {
+    "DaysBeforeExpiryAlert": 30
+  }
+}
+```
+
+### .env (Frontend)
+```
+VITE_API_BASE_URL=http://localhost:5000/api
+VITE_APP_TITLE=Quản Lý Thiết Bị Y Tế
+```
+
+---
+
+## 10. TÍNH NĂNG ĐẶC BIỆT
+
+### Email tự động — Hết hạn kiểm định
+- **Không dùng** logic trong login page (cũ)
+- Dùng `IHostedService` chạy hàng ngày lúc 6:00
+- Query: `hankiemdinh < (NOW + 30 days) AND MaKT = '0'`
+- Sau khi gửi: cập nhật `MaKT = '1'`
+
+### Firebase Push Notification
+- Gửi khi: có sự cố mới, sự cố được xử lý, chuyển giao thiết bị
+- Dùng Firebase Admin SDK v2+ (HTTP v1 API, không dùng Legacy)
+- Token của user lưu ở `Taikhoan.RegID`
+
+### QR Code
+- Generate QR **trên Frontend** bằng `qrcode.react`
+- Scan QR bằng `@zxing/browser` (không cần API riêng)
+- Backend chỉ store/retrieve QR code text trong bảng `QuanlyMa`
+
+### Upload File
+- Frontend: `react-dropzone`
+- Backend: `multipart/form-data` endpoint
+- Cấu trúc thư mục: `TAILIEU/{IDTB}/Hinh_anh_su_co/` và `TAILIEU/{IDTB}/BAO_CAO_SU_CO/`
+
+### Import/Export Excel
+- Import: Frontend upload → Backend parse với EPPlus/NPOI → validate → insert
+- Export: Backend generate Excel với EPPlus → trả về file stream
+
+---
+
+## 11. MAPPING ASPX → REACT ROUTE
+
+| File .aspx cũ | Route mới | Endpoint chính |
+|---|---|---|
+| `login.aspx` | `/login` | `POST /api/auth/login` |
+| `Dashboard.aspx` | `/dashboard` | `GET /api/dashboard/*` |
+| `Themdulieu.aspx` | `/devices/create` | `POST /api/devices` |
+| `edit.aspx` | `/devices/:id/edit` | `PUT /api/devices/:id` |
+| `view.aspx` | `/devices/:id` | `GET /api/devices/:id` |
+| `Timkiem.aspx` | `/devices` | `GET /api/devices` |
+| `import.aspx` | `/devices/import` | `POST /api/devices/import` |
+| `guiyc.aspx` | `/devices/:id/report` | `POST /api/devices/:id/events` |
+| `xuly.aspx` | `/events/:id/resolve` | `PUT /api/events/:id` |
+| `NhatkyTB.aspx` | `/devices/:id/usage-log` | `POST /api/devices/:id/usage-logs` |
+| `log.aspx` | `/events` | `GET /api/events` |
+| `baocao.aspx` | `/reports/devices` | `GET /api/reports/devices` |
+| `baocaoTS.aspx` | `/reports/assets` | `GET /api/reports/assets` |
+| `baocaokho.aspx` | `/reports/warehouse` | `GET /api/reports/warehouse` |
+| `donvi.aspx` | `/organizations` | `GET /api/organizations` |
+| `quanlynhansu.aspx` | `/personnel` | `GET /api/personnel` |
+| `taikhoan.aspx` | `/users` | `GET /api/users` |
+| `goithau.aspx` | `/bidding-packages` | `GET /api/bidding-packages` |
+| `sign.aspx` | `/sign-document` | `POST /api/documents/sign` |
+| `thongbao.aspx` | Header component | `GET /api/notifications` |
+| `doimatkhau.aspx` | `/profile` | `PUT /api/users/me/password` |
+
+---
+
+## 12. QUY TẮC VIẾT CODE
+
+### Backend (C#)
+1. **Controller mỏng**: Chỉ nhận request, delegate xuống Service, trả response
+2. **Luôn dùng async/await** cho DB operations
+3. **Dùng EF Core** cho tất cả DB access — không dùng raw SQL trừ performance-critical queries
+4. **Không expose entity trực tiếp** — luôn map sang DTO trước khi return
+5. **FluentValidation** cho validate request objects
+6. **Global error handling** trong `ErrorHandlingMiddleware`
+7. **Serilog** cho logging — không dùng `Console.WriteLine`
+8. **Không hardcode** connection string, secret key trong code
+
+### Frontend (TypeScript/React)
+1. **TypeScript strict mode** — không dùng `any` trừ khi thực sự cần thiết
+2. **React Query** cho tất cả data fetching — không dùng `useState` + `useEffect` cho API calls
+3. **Zustand** chỉ cho global state (auth, notifications) — state cục bộ dùng `useState`
+4. **Ant Design components** — không tự build component nếu AntD đã có
+5. **Tiếng Việt** cho tất cả text hiển thị, label, placeholder, message
+6. **dayjs** cho xử lý ngày tháng (không dùng `moment.js`)
+7. **Tách logic** — business logic vào custom hooks, không viết trong component
+8. **Export named** cho components — tránh default export khi có thể
+
+### Chung
+- **CORS**: Backend cấu hình cho `http://localhost:5173` (Vite dev port)
+- **Phiên bản .NET**: Target `net7.0` trong `.csproj`
+- **Node.js**: Khuyến nghị ≥ 18.x cho frontend
+
+---
+
+## 13. PHÁT TRIỂN THEO PHASES
+
+### Phase 1 — Core (đang thực hiện)
+- Setup project structure (React + .NET 7)
+- Authentication (JWT login/logout)
+- Module Quản lý Thiết bị (CRUD + phân trang + search)
+- Upload ảnh + file
+- Dashboard cơ bản (biểu đồ)
+
+### Phase 2 — Operations
+- Module Log/Sự cố (báo cáo + xử lý)
+- Module Nhật ký sử dụng
+- Push notification (Firebase Admin SDK)
+- Email tự động (Background Service)
+- Quản lý tài khoản + nhân sự
+
+### Phase 3 — Advanced
+- Module Báo cáo + Export Excel
+- Module Gói thầu + Hồ sơ pháp lý
+- Scan QR Code
+- Import Excel hàng loạt
+- Phân quyền đầy đủ
+
+### Phase 4 — Premium
+- Ký số PDF (iText7)
+- Module Kho vật tư/thuốc
+- Responsive mobile
+- Performance optimization
