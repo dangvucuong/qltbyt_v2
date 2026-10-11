@@ -29,7 +29,7 @@ public class WarehouseController : ControllerBase
     public async Task<ActionResult<ApiResponse<CommodityDto>>> CreateCommodity([FromBody] CreateCommodityRequest request)
     {
         var item = await _warehouse.CreateCommodityAsync(request);
-        return Ok(ApiResponse<CommodityDto>.CreateSuccess(item, "Them hang hoa thanh cong."));
+        return Ok(ApiResponse<CommodityDto>.CreateSuccess(item, "Thêm hàng hóa thành công."));
     }
 
     [HttpGet("batches")]
@@ -43,7 +43,7 @@ public class WarehouseController : ControllerBase
     public async Task<ActionResult<ApiResponse<BatchDto>>> CreateBatch([FromBody] CreateBatchRequest request)
     {
         var item = await _warehouse.CreateBatchAsync(request);
-        return Ok(ApiResponse<BatchDto>.CreateSuccess(item, "Them lo hang thanh cong."));
+        return Ok(ApiResponse<BatchDto>.CreateSuccess(item, "Thêm lô hàng thành công."));
     }
 
     [HttpGet("imports")]
@@ -59,7 +59,7 @@ public class WarehouseController : ControllerBase
         try
         {
             var item = await _warehouse.ImportStockAsync(request);
-            return Ok(ApiResponse<StockImportDto>.CreateSuccess(item, "Nhap kho thanh cong."));
+            return Ok(ApiResponse<StockImportDto>.CreateSuccess(item, "Nhập kho thành công."));
         }
         catch (InvalidOperationException ex)
         {
@@ -80,7 +80,7 @@ public class WarehouseController : ControllerBase
         try
         {
             var item = await _warehouse.ExportStockAsync(request);
-            return Ok(ApiResponse<StockExportDto>.CreateSuccess(item, "Xuat kho thanh cong."));
+            return Ok(ApiResponse<StockExportDto>.CreateSuccess(item, "Xuất kho thành công."));
         }
         catch (InvalidOperationException ex)
         {

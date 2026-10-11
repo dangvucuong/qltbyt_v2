@@ -17,9 +17,20 @@ public class HealthController : ControllerBase
         _databaseHealthService = databaseHealthService;
     }
 
+    /// <summary>Ping nhanh — kiểm tra IIS/API đã lên.</summary>
+    [AllowAnonymous]
+    [HttpGet]
+    [HttpGet("ping")]
+    public ActionResult<ApiResponse<object>> Ping()
+    {
+        return Ok(ApiResponse<object>.CreateSuccess(
+            new { status = "ok", utc = DateTime.UtcNow },
+            "API đang chạy."));
+    }
+
     [AllowAnonymous]
     [HttpGet("database")]
-  [ProducesResponseType(typeof(ApiResponse<DatabaseHealthDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<DatabaseHealthDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<DatabaseHealthDto>), StatusCodes.Status503ServiceUnavailable)]
     public async Task<ActionResult<ApiResponse<DatabaseHealthDto>>> GetDatabaseHealth()
     {
@@ -30,10 +41,10 @@ public class HealthController : ControllerBase
             return StatusCode(
                 StatusCodes.Status503ServiceUnavailable,
                 ApiResponse<DatabaseHealthDto>.CreateFail(
-                    "Database chua san sang hoac thieu bang core.",
+                    "Database chưa sẵn sàng hoặc thiếu bảng core.",
                     health.MissingCoreTables.ToList()));
         }
 
-        return Ok(ApiResponse<DatabaseHealthDto>.CreateSuccess(health, "Database san sang."));
+        return Ok(ApiResponse<DatabaseHealthDto>.CreateSuccess(health, "Database sẵn sàng."));
     }
 }

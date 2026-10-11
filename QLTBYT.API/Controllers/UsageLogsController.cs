@@ -26,12 +26,13 @@ public class UsageLogsController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Policy = "TechnicianAndAbove")]
     public async Task<ActionResult<ApiResponse<UsageLogDto>>> Create([FromBody] CreateUsageLogRequest request)
     {
         try
         {
-            var item = await _usageLogService.CreateAsync(request);
-            return Ok(ApiResponse<UsageLogDto>.CreateSuccess(item, "Ghi nhat ky thanh cong."));
+            var item = await _usageLogService.UpsertAsync(request);
+            return Ok(ApiResponse<UsageLogDto>.CreateSuccess(item, "Ghi nhật ký thành công."));
         }
         catch (InvalidOperationException ex)
         {

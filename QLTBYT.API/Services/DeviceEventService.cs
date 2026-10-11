@@ -3,6 +3,7 @@ using QLTBYT.API.Data;
 using QLTBYT.API.Helpers;
 using QLTBYT.API.Models.Common;
 using QLTBYT.API.Models.Domain;
+using QLTBYT.API.Models.DTOs.Device;
 using QLTBYT.API.Models.DTOs.Event;
 
 namespace QLTBYT.API.Services;
@@ -14,19 +15,22 @@ public class DeviceEventService : IDeviceEventService
     private readonly ISystemAuditService _audit;
     private readonly INotificationService _notifications;
     private readonly IIncidentAlertService _incidentAlerts;
+    private readonly IFileStorageService _fileStorage;
 
     public DeviceEventService(
         AppDbContext context,
         ICurrentUserService currentUser,
         ISystemAuditService audit,
         INotificationService notifications,
-        IIncidentAlertService incidentAlerts)
+        IIncidentAlertService incidentAlerts,
+        IFileStorageService fileStorage)
     {
         _context = context;
         _currentUser = currentUser;
         _audit = audit;
         _notifications = notifications;
         _incidentAlerts = incidentAlerts;
+        _fileStorage = fileStorage;
     }
 
     public async Task<PagedResult<EventListDto>> GetEventsAsync(EventQueryParams query)
@@ -161,11 +165,107 @@ public class DeviceEventService : IDeviceEventService
     {
         var kw = request.Keyword?.Trim() ?? string.Empty;
         if (string.IsNullOrEmpty(kw))
-            throw new InvalidOperationException("Keyword la bat buoc.");
+            throw new InvalidOperationException("Từ khóa là bắt buộc.");
         var entity = new EventKeyword { Keyword = kw };
         _context.EventKeywords.Add(entity);
         await _context.SaveChangesAsync();
         return new EventKeywordDto { Id = entity.Id, Keyword = kw };
+    }
+
+    public async Task<DeviceFileDto> AddIncidentFileForEventAsync(int eventId, Stream content, string fileName, string kind)
+    {
+        var entity = await _context.DeviceEvents.Include(e => e.Device).FirstOrDefaultAsync(e => e.Id == eventId);
+        if (entity is null || entity.DeviceId is null || !IsDeviceAllowed(entity.Device))
+            throw new InvalidOperationException("Không tìm thấy sự cố hoặc không có quyền.");
+
+        return await SaveIncidentFileAsync(entity.DeviceId.Value, content, fileName, kind);
+    }
+
+    public async Task<List<DeviceFileDto>> GetIncidentFilesForEventAsync(int eventId)
+    {
+        var entity = await _context.DeviceEvents.AsNoTracking().Include(e => e.Device)
+            .FirstOrDefaultAsync(e => e.Id == eventId);
+        if (entity is null || entity.DeviceId is null || !IsDeviceAllowed(entity.Device))
+            return new List<DeviceFileDto>();
+
+        return await GetIncidentFilesForDeviceAsync(entity.DeviceId.Value, null);
+    }
+
+    public async Task<DeviceFileDto> AddIncidentFileForDeviceAsync(int deviceId, Stream content, string fileName, string kind)
+    {
+        var device = await _context.Devices.AsNoTracking().FirstOrDefaultAsync(d => d.Id == deviceId);
+        if (device is null || !IsDeviceAllowed(device))
+            throw new InvalidOperationException("Không tìm thấy thiết bị hoặc không có quyền.");
+
+        return await SaveIncidentFileAsync(deviceId, content, fileName, kind);
+    }
+
+    public async Task<List<DeviceFileDto>> GetIncidentFilesForDeviceAsync(int deviceId, string? kind)
+    {
+        var device = await _context.Devices.AsNoTracking().FirstOrDefaultAsync(d => d.Id == deviceId);
+        if (device is null || !IsDeviceAllowed(device))
+            return new List<DeviceFileDto>();
+
+        var folder = ResolveIncidentFolder(kind);
+        var query = _context.DeviceFiles.AsNoTracking().Where(f => f.DeviceId == deviceId);
+        if (folder is not null)
+            query = query.Where(f => f.Path != null && f.Path.Contains(folder));
+        else
+            query = query.Where(f =>
+                f.Path != null &&
+                (f.Path.Contains("Hinh_anh_su_co") || f.Path.Contains("BAO_CAO_SU_CO")));
+
+        return await query
+            .OrderByDescending(f => f.FileDate)
+            .ThenByDescending(f => f.Id)
+            .Select(f => new DeviceFileDto
+            {
+                Id = f.Id,
+                Path = f.Path,
+                Description = f.Description,
+                FileDate = f.FileDate
+            })
+            .ToListAsync();
+    }
+
+    private async Task<DeviceFileDto> SaveIncidentFileAsync(int deviceId, Stream content, string fileName, string kind)
+    {
+        var folder = ResolveIncidentFolder(kind)
+            ?? throw new InvalidOperationException("Loại file phải là image hoặc report.");
+        var description = folder == "Hinh_anh_su_co" ? "Hình ảnh sự cố" : "Báo cáo sự cố";
+
+        var relativePath = await _fileStorage.SaveIncidentFileAsync(deviceId, folder, content, fileName);
+        var file = new DeviceFile
+        {
+            DeviceId = deviceId,
+            Path = relativePath,
+            Description = description,
+            FileDate = DateTime.Now
+        };
+        _context.DeviceFiles.Add(file);
+        await _context.SaveChangesAsync();
+
+        await _audit.WriteAsync(_currentUser.UserId,
+            $"Upload file sự cố ({description}) thiết bị ID={deviceId}", deviceId);
+
+        return new DeviceFileDto
+        {
+            Id = file.Id,
+            Path = file.Path,
+            Description = file.Description,
+            FileDate = file.FileDate
+        };
+    }
+
+    private static string? ResolveIncidentFolder(string? kind)
+    {
+        if (string.IsNullOrWhiteSpace(kind)) return null;
+        return kind.Trim().ToLowerInvariant() switch
+        {
+            "image" or "hinh_anh_su_co" or "incident-image" => "Hinh_anh_su_co",
+            "report" or "bao_cao_su_co" or "incident-report" => "BAO_CAO_SU_CO",
+            _ => null
+        };
     }
 
     private IQueryable<DeviceEvent> ApplyDeviceScope(IQueryable<DeviceEvent> queryable)

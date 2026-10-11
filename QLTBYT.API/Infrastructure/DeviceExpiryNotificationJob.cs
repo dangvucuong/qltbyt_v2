@@ -73,7 +73,7 @@ public class DeviceExpiryNotificationJob : BackgroundService
 
         var summary = string.Join(", ", expiring.Select(e => $"{e.DeviceCode} ({e.InspectionExpiryDate:dd/MM/yyyy})"));
         await notifications.NotifyUsersAsync(
-            "Thiet bi sap het han kiem dinh",
+            "Thiết bị sắp hết hạn kiểm định",
             summary,
             adminIds.First(),
             adminIds);

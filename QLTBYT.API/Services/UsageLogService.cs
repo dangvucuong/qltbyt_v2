@@ -8,7 +8,8 @@ namespace QLTBYT.API.Services;
 public interface IUsageLogService
 {
     Task<List<UsageLogDto>> GetLogsAsync(UsageLogQueryParams query);
-    Task<UsageLogDto> CreateAsync(CreateUsageLogRequest request);
+    /// <summary>Ghi mới hoặc cập nhật nếu đã có bản ghi cùng thiết bị + ngày (legacy UpdateEveryday).</summary>
+    Task<UsageLogDto> UpsertAsync(CreateUsageLogRequest request);
 }
 
 public class UsageLogService : IUsageLogService
@@ -46,7 +47,7 @@ public class UsageLogService : IUsageLogService
         if (query.ToDate.HasValue)
             q = q.Where(l => l.InputDate <= query.ToDate.Value);
 
-        // Khong dung Trim() trong LINQ-to-SQL (legacy MaTB co padding) — loc trong memory.
+        // Không dùng Trim() trong LINQ-to-SQL (legacy MaTB có padding) — lọc trong memory.
         var rows = await q.OrderByDescending(l => l.InputDate).Take(2000).ToListAsync();
 
         if (deviceFilterKey != null)
@@ -73,26 +74,47 @@ public class UsageLogService : IUsageLogService
         return rows.Select(l => Map(l, lookup)).ToList();
     }
 
-    public async Task<UsageLogDto> CreateAsync(CreateUsageLogRequest request)
+    public async Task<UsageLogDto> UpsertAsync(CreateUsageLogRequest request)
     {
         var device = await FindDeviceAsync(request.DeviceCode);
         if (device is null)
-            throw new InvalidOperationException("Khong tim thay thiet bi.");
+            throw new InvalidOperationException("Không tìm thấy thiết bị.");
 
         await EnsureDeviceScopeAsync(device);
 
         var storageKey = StorageKeyForDevice(device);
-        var entity = new UsageLog
+        var day = request.InputDate.Date;
+
+        var candidates = await _context.UsageLogs
+            .Where(l => l.InputDate >= day && l.InputDate < day.AddDays(1))
+            .ToListAsync();
+        var entity = candidates.FirstOrDefault(l =>
+            l.DeviceCode != null && l.DeviceCode.Trim() == storageKey);
+
+        if (entity is null)
         {
-            DeviceCode = storageKey,
-            Hours = request.Hours,
-            Sessions = request.Sessions,
-            InputDate = request.InputDate,
-            UserId = _currentUser.UserId
-        };
-        _context.UsageLogs.Add(entity);
-        await _context.SaveChangesAsync();
-        await _audit.WriteAsync(_currentUser.UserId, $"Nhat ky su dung {storageKey}", null);
+            entity = new UsageLog
+            {
+                DeviceCode = storageKey,
+                Hours = request.Hours,
+                Sessions = request.Sessions,
+                InputDate = day,
+                UserId = _currentUser.UserId
+            };
+            _context.UsageLogs.Add(entity);
+            await _context.SaveChangesAsync();
+            await _audit.WriteAsync(_currentUser.UserId, $"Nhật ký sử dụng {storageKey}", null);
+        }
+        else
+        {
+            entity.Hours = request.Hours;
+            entity.Sessions = request.Sessions;
+            entity.UserId = _currentUser.UserId;
+            entity.InputDate = day;
+            await _context.SaveChangesAsync();
+            await _audit.WriteAsync(_currentUser.UserId, $"Cập nhật nhật ký sử dụng {storageKey}", null);
+        }
+
         var lookup = await DeviceLookup.BuildAsync(_context);
         return Map(entity, lookup);
     }
@@ -138,7 +160,7 @@ public class UsageLogService : IUsageLogService
 
         var allowed = _currentUser.OrganizationIds;
         if (device.OrganizationId is null || !allowed.Contains(device.OrganizationId.Value))
-            throw new InvalidOperationException("Khong co quyen voi thiet bi nay.");
+            throw new InvalidOperationException("Không có quyền với thiết bị này.");
     }
 
     private async Task<List<string>> ScopedDeviceKeysAsync()

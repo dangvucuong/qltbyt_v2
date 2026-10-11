@@ -43,7 +43,7 @@ public class BiddingService : IBiddingService
     public async Task<BiddingPackageDto> CreateAsync(CreateBiddingPackageRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.PackageCode))
-            throw new InvalidOperationException("Ma goi thau la bat buoc.");
+            throw new InvalidOperationException("Mã gói thầu là bắt buộc.");
 
         var entity = new BiddingPackage
         {

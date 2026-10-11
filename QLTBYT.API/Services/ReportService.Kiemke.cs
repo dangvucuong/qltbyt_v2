@@ -19,21 +19,21 @@ public partial class ReportService
     {
         var rows = await BuildKiemkeAssetRowsAsync(query);
         using var workbook = new XLWorkbook();
-        var sheet = workbook.Worksheets.Add("Kiem ke TBYT");
-        sheet.Cell(1, 1).Value = "Ten TB";
-        sheet.Cell(1, 2).Value = "Ma tai san";
-        sheet.Cell(1, 3).Value = "Hang SX";
+        var sheet = workbook.Worksheets.Add("Kiểm kê TBYT");
+        sheet.Cell(1, 1).Value = "Tên TB";
+        sheet.Cell(1, 2).Value = "Mã tài sản";
+        sheet.Cell(1, 3).Value = "Hãng SX";
         sheet.Cell(1, 4).Value = "Model";
         sheet.Cell(1, 5).Value = "Serial";
-        sheet.Cell(1, 6).Value = "So luong";
-        sheet.Cell(1, 7).Value = "DVT";
-        sheet.Cell(1, 8).Value = "Khoa phong";
-        sheet.Cell(1, 9).Value = "Vi tri";
-        sheet.Cell(1, 10).Value = "Nguon mua sam";
-        sheet.Cell(1, 11).Value = "Nguyen gia";
-        sheet.Cell(1, 12).Value = "Ngay tiep nhan";
-        sheet.Cell(1, 13).Value = "Khau hao";
-        sheet.Cell(1, 14).Value = "Ghi chu";
+        sheet.Cell(1, 6).Value = "Số lượng";
+        sheet.Cell(1, 7).Value = "ĐVT";
+        sheet.Cell(1, 8).Value = "Khoa phòng";
+        sheet.Cell(1, 9).Value = "Vị trí";
+        sheet.Cell(1, 10).Value = "Nguồn mua sắm";
+        sheet.Cell(1, 11).Value = "Nguyên giá";
+        sheet.Cell(1, 12).Value = "Ngày tiếp nhận";
+        sheet.Cell(1, 13).Value = "Khấu hao";
+        sheet.Cell(1, 14).Value = "Ghi chú";
         var r = 2;
         foreach (var row in rows)
         {

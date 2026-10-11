@@ -53,7 +53,7 @@ public class DashboardService : IDashboardService
             .Select(g => new OrganizationStatsDto
             {
                 OrganizationId = g.Key,
-                Label = g.First().OrgName ?? "Khong ro",
+                Label = g.First().OrgName ?? "Không rõ",
                 DeviceCount = g.Count(),
                 TotalAssetValue = g.Sum(x => FinancialParseHelper.ParseLegacyAmount(x.TotalAmount))
             })
@@ -66,12 +66,12 @@ public class DashboardService : IDashboardService
             ExpiringInspectionCount = expiring,
             ByStatus = byStatus.Select(x => new ChartItemDto
             {
-                Label = x.Id.HasValue && statusNames.ContainsKey(x.Id.Value) ? statusNames[x.Id.Value]! : "Khong ro",
+                Label = x.Id.HasValue && statusNames.ContainsKey(x.Id.Value) ? statusNames[x.Id.Value]! : "Không rõ",
                 Value = x.Count
             }).ToList(),
             ByType = byType.Select(x => new ChartItemDto
             {
-                Label = x.Id.HasValue && typeNames.ContainsKey(x.Id.Value) ? typeNames[x.Id.Value]! : "Khong ro",
+                Label = x.Id.HasValue && typeNames.ContainsKey(x.Id.Value) ? typeNames[x.Id.Value]! : "Không rõ",
                 Value = x.Count
             }).ToList(),
             ByOrganization = byOrganization

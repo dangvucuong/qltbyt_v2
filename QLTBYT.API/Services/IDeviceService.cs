@@ -13,6 +13,7 @@ public interface IDeviceService
     Task<List<DeviceListDto>> GetChildrenAsync(int parentId);
     Task<DeviceFileDto> AddFileAsync(int deviceId, Stream content, string fileName, string? description);
     Task<DeviceFileDto> AddFileWithPathAsync(int deviceId, string relativePath, string? description);
+    Task<string> UploadMaintenanceContractAsync(int deviceId, Stream content, string fileName);
     Task<DeviceDetailDto?> TransferDeviceAsync(int id, TransferDeviceRequest request);
     Task<List<DeviceHistoryItemDto>> GetDeviceHistoryAsync(int id);
     Task<DeviceDetailDto?> UpdateQrAsync(int id, UpdateDeviceQrRequest request);

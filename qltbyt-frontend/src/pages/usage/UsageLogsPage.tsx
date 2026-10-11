@@ -7,6 +7,7 @@ import axiosClient from '@/api/axiosClient';
 import type { ApiResponse, DeviceListItem, PagedResult } from '@/types/api';
 import type { CreateUsageLogPayload, UsageLogItem } from '@/types/phase2';
 import { PageHeader } from '@/components/PageHeader';
+import { useAuthStore } from '@/store/authStore';
 
 function formatLogDate(value?: string) {
   if (!value) return '—';
@@ -27,6 +28,8 @@ function deviceLabel(d: DeviceListItem) {
 
 export function UsageLogsPage() {
   const queryClient = useQueryClient();
+  const role = useAuthStore((s) => s.user?.role);
+  const canEdit = role === 'Admin' || role === 'Technician';
   const [filterForm] = Form.useForm();
   const [createForm] = Form.useForm();
   const deviceCode = Form.useWatch('deviceCode', filterForm);
@@ -84,49 +87,58 @@ export function UsageLogsPage() {
 
   return (
     <div>
-      <PageHeader title="Nhật ký sử dụng" subtitle="Giờ/ca theo ngày (InputByDate)" />
-      <Card className="app-card" title="Ghi nhật ký mới" style={{ marginBottom: 16 }}>
-        <Form
-          form={createForm}
-          layout="inline"
-          initialValues={{ inputDate: dayjs() }}
-          onFinish={(v) =>
-            createMutation.mutate({
-              deviceCode: v.deviceCode,
-              hours: v.hours,
-              sessions: v.sessions,
-              inputDate: v.inputDate.toISOString(),
-            })
-          }
-        >
-          <Form.Item name="deviceCode" label="Thiết bị" rules={[{ required: true, message: 'Chọn thiết bị' }]}>
-            <Select
-              showSearch
-              allowClear
-              placeholder="Gõ tên hoặc mã để tìm thiết bị"
-              optionFilterProp="label"
-              filterOption={false}
-              onSearch={setDeviceSearch}
-              notFoundContent={devicesQuery.isFetching ? 'Đang tải...' : 'Không có thiết bị'}
-              options={deviceOptions}
-              style={{ minWidth: 320 }}
-              loading={devicesQuery.isFetching}
-            />
-          </Form.Item>
-          <Form.Item name="inputDate" label="Ngày" rules={[{ required: true }]}>
-            <DatePicker />
-          </Form.Item>
-          <Form.Item name="hours" label="Số giờ">
-            <InputNumber min={0} />
-          </Form.Item>
-          <Form.Item name="sessions" label="Số ca">
-            <InputNumber min={0} />
-          </Form.Item>
-          <Button type="primary" htmlType="submit" loading={createMutation.isPending}>
-            Ghi
-          </Button>
-        </Form>
-      </Card>
+      <PageHeader
+        title="Nhật ký sử dụng"
+        subtitle="Giờ/ca theo ngày — có thể ghi trực tiếp từ trang chi tiết thiết bị"
+      />
+      {canEdit ? (
+        <Card className="app-card" title="Ghi nhật ký mới" style={{ marginBottom: 16 }}>
+          <Form
+            form={createForm}
+            layout="inline"
+            initialValues={{ inputDate: dayjs() }}
+            onFinish={(v) =>
+              createMutation.mutate({
+                deviceCode: v.deviceCode,
+                hours: v.hours,
+                sessions: v.sessions,
+                inputDate: v.inputDate.format('YYYY-MM-DD'),
+              })
+            }
+          >
+            <Form.Item name="deviceCode" label="Thiết bị" rules={[{ required: true, message: 'Chọn thiết bị' }]}>
+              <Select
+                showSearch
+                allowClear
+                placeholder="Gõ tên hoặc mã để tìm thiết bị"
+                optionFilterProp="label"
+                filterOption={false}
+                onSearch={setDeviceSearch}
+                notFoundContent={devicesQuery.isFetching ? 'Đang tải...' : 'Không có thiết bị'}
+                options={deviceOptions}
+                style={{ minWidth: 320 }}
+                loading={devicesQuery.isFetching}
+              />
+            </Form.Item>
+            <Form.Item name="inputDate" label="Ngày" rules={[{ required: true }]}>
+              <DatePicker format="DD/MM/YYYY" />
+            </Form.Item>
+            <Form.Item name="hours" label="Số giờ">
+              <InputNumber min={0} />
+            </Form.Item>
+            <Form.Item name="sessions" label="Số ca">
+              <InputNumber min={0} />
+            </Form.Item>
+            <Button type="primary" htmlType="submit" loading={createMutation.isPending}>
+              Ghi
+            </Button>
+          </Form>
+        </Card>
+      ) : (
+        <Card className="app-card" style={{ marginBottom: 16 }}>
+          Chỉ Admin / Kỹ thuật được ghi nhật ký. Bạn vẫn có thể xem danh sách bên dưới.
+        </Card>
+      )}
       <Card className="app-card">
         <Form form={filterForm} layout="inline" style={{ marginBottom: 16 }}>
           <Form.Item name="deviceCode" label="Lọc thiết bị">

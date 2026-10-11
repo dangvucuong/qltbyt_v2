@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button, Card, Form, Input, message, Typography } from 'antd';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+import axiosClient from '@/api/axiosClient';
 import type { ApiResponse } from '@/types/api';
 
 type ForgotRes = { resetToken?: string; message?: string };
@@ -16,7 +16,7 @@ export function ForgotPasswordPage() {
           <Typography.Title level={4}>Quên mật khẩu</Typography.Title>
           <Form form={form} layout="vertical" onFinish={async (v) => {
             try {
-              const res = await axios.post<ApiResponse<ForgotRes>>('/api/auth/forgot-password', v);
+              const res = await axiosClient.post<ApiResponse<ForgotRes>>('/api/auth/forgot-password', v);
               message.success(res.data.message ?? 'Đã gửi yêu cầu');
               if (res.data.data?.resetToken) setDevToken(res.data.data.resetToken);
             } catch {

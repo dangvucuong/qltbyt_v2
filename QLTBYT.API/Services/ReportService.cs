@@ -155,15 +155,15 @@ public partial class ReportService : IReportService
             .ToListAsync();
 
         using var workbook = new XLWorkbook();
-        var sheet = workbook.Worksheets.Add("Thiet bi");
-        sheet.Cell(1, 1).Value = "Ma TB";
-        sheet.Cell(1, 2).Value = "Ten TB";
-        sheet.Cell(1, 3).Value = "Loai";
-        sheet.Cell(1, 4).Value = "Don vi";
-        sheet.Cell(1, 5).Value = "Trang thai";
-        sheet.Cell(1, 6).Value = "Han kiem dinh";
-        sheet.Cell(1, 7).Value = "Thanh tien";
-        sheet.Cell(1, 8).Value = "Moc bao tri";
+        var sheet = workbook.Worksheets.Add("Thiết bị");
+        sheet.Cell(1, 1).Value = "Mã TB";
+        sheet.Cell(1, 2).Value = "Tên TB";
+        sheet.Cell(1, 3).Value = "Loại";
+        sheet.Cell(1, 4).Value = "Đơn vị";
+        sheet.Cell(1, 5).Value = "Trạng thái";
+        sheet.Cell(1, 6).Value = "Hạn kiểm định";
+        sheet.Cell(1, 7).Value = "Thành tiền";
+        sheet.Cell(1, 8).Value = "Mốc bảo trì";
         int r = 2;
         foreach (var d in rows)
         {
@@ -191,10 +191,10 @@ public partial class ReportService : IReportService
             .ToListAsync();
 
         using var workbook = new XLWorkbook();
-        var sheet = workbook.Worksheets.Add("Sap het han KD");
-        sheet.Cell(1, 1).Value = "Ma TB";
-        sheet.Cell(1, 2).Value = "Ten TB";
-        sheet.Cell(1, 3).Value = "Han kiem dinh";
+        var sheet = workbook.Worksheets.Add("Sắp hết hạn KD");
+        sheet.Cell(1, 1).Value = "Mã TB";
+        sheet.Cell(1, 2).Value = "Tên TB";
+        sheet.Cell(1, 3).Value = "Hạn kiểm định";
         int r = 2;
         foreach (var d in rows)
         {
@@ -218,15 +218,15 @@ public partial class ReportService : IReportService
         var legalList = await _context.LegalDocuments.AsNoTracking().ToListAsync();
 
         using var workbook = new XLWorkbook();
-        var sheet = workbook.Worksheets.Add("Tai san TB");
-        sheet.Cell(1, 1).Value = "Ma TB";
-        sheet.Cell(1, 2).Value = "Ten TB";
-        sheet.Cell(1, 3).Value = "Loai";
-        sheet.Cell(1, 4).Value = "Don vi";
-        sheet.Cell(1, 5).Value = "Ngay tiep nhan";
-        sheet.Cell(1, 6).Value = "Goi thau";
-        sheet.Cell(1, 7).Value = "Gia co VAT (HS)";
-        sheet.Cell(1, 8).Value = "Thanh tien";
+        var sheet = workbook.Worksheets.Add("Tài sản TB");
+        sheet.Cell(1, 1).Value = "Mã TB";
+        sheet.Cell(1, 2).Value = "Tên TB";
+        sheet.Cell(1, 3).Value = "Loại";
+        sheet.Cell(1, 4).Value = "Đơn vị";
+        sheet.Cell(1, 5).Value = "Ngày tiếp nhận";
+        sheet.Cell(1, 6).Value = "Gói thầu";
+        sheet.Cell(1, 7).Value = "Giá có VAT (HS)";
+        sheet.Cell(1, 8).Value = "Thành tiền";
         int r = 2;
         foreach (var d in rows)
         {
@@ -253,12 +253,12 @@ public partial class ReportService : IReportService
             .Take(500)
             .ToListAsync();
         using var workbook = new XLWorkbook();
-        var sheet = workbook.Worksheets.Add("Su co");
+        var sheet = workbook.Worksheets.Add("Sự cố");
         sheet.Cell(1, 1).Value = "ID";
         sheet.Cell(1, 2).Value = "TB ID";
-        sheet.Cell(1, 3).Value = "Noi dung";
-        sheet.Cell(1, 4).Value = "Thoi gian";
-        sheet.Cell(1, 5).Value = "Trang thai";
+        sheet.Cell(1, 3).Value = "Nội dung";
+        sheet.Cell(1, 4).Value = "Thời gian";
+        sheet.Cell(1, 5).Value = "Trạng thái";
         int r = 2;
         foreach (var e in events)
         {

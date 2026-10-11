@@ -23,11 +23,13 @@ public class MappingProfile : Profile
 
         CreateMap<CreateDeviceRequest, Device>()
             .ForMember(d => d.Id, o => o.Ignore())
+            .ForMember(d => d.LegalDocumentRef, o => o.Ignore())
             .ForMember(d => d.UpdatedAt, o => o.MapFrom(_ => DateTime.UtcNow));
 
         CreateMap<UpdateDeviceRequest, Device>()
             .ForMember(d => d.Id, o => o.Ignore())
             .ForMember(d => d.DeviceCode, o => o.Ignore())
+            .ForMember(d => d.LegalDocumentRef, o => o.Ignore())
             .ForMember(d => d.UpdatedAt, o => o.MapFrom(_ => DateTime.UtcNow));
     }
 }

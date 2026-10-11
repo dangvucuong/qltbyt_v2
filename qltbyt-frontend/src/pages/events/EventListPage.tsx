@@ -1,4 +1,8 @@
 import { Button, Card, Col, Form, Row, Select, Space, Table, Tag, message } from 'antd';
+import {
+  DownloadOutlined,
+  TagsOutlined,
+} from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
@@ -10,6 +14,17 @@ import { PageHeader } from '@/components/PageHeader';
 import { LoadingCenter } from '@/components/LoadingCenter';
 import { useAuthStore } from '@/store/authStore';
 import { ResolveEventModal } from '@/components/ResolveEventModal';
+import { EventKeywordsModal } from '@/components/EventKeywordsModal';
+
+async function downloadFile(path: string, filename: string) {
+  const res = await axiosClient.get(path, { responseType: 'blob' });
+  const url = window.URL.createObjectURL(new Blob([res.data]));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  window.URL.revokeObjectURL(url);
+}
 
 export function EventListPage() {
   const user = useAuthStore((s) => s.user);
@@ -17,6 +32,8 @@ export function EventListPage() {
   const queryClient = useQueryClient();
   const [form] = Form.useForm();
   const [resolveEvent, setResolveEvent] = useState<EventListItem | null>(null);
+  const [keywordsOpen, setKeywordsOpen] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
@@ -55,11 +72,43 @@ export function EventListPage() {
     onError: () => message.error('Xử lý thất bại'),
   });
 
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      await downloadFile('/api/reports/events/export', 'Su-co-yeu-cau.xlsx');
+      message.success('Đã xuất Excel sự cố');
+    } catch {
+      message.error('Xuất Excel thất bại');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const data = eventsQuery.data;
 
   return (
     <div>
-      <PageHeader title="Sự cố & yêu cầu" subtitle="Theo dõi báo hỏng và xử lý" />
+      <PageHeader
+        title="Sự cố & yêu cầu"
+        subtitle="Theo dõi báo hỏng và xử lý"
+        extra={
+          <Space wrap>
+            {canResolve && (
+              <Button icon={<TagsOutlined />} onClick={() => setKeywordsOpen(true)}>
+                Từ khóa sự cố
+              </Button>
+            )}
+            <Button
+              type="primary"
+              icon={<DownloadOutlined />}
+              loading={exporting}
+              onClick={handleExport}
+            >
+              Xuất Excel
+            </Button>
+          </Space>
+        }
+      />
       <Card className="app-card">
         <Form
           form={form}
@@ -83,7 +132,9 @@ export function EventListPage() {
             </Col>
             <Col xs={24} sm={12} md={8}>
               <Space>
-                <Button type="primary" onClick={() => eventsQuery.refetch()}>Áp dụng lọc</Button>
+                <Button type="primary" onClick={() => eventsQuery.refetch()}>
+                  Áp dụng lọc
+                </Button>
                 <Button
                   onClick={() => {
                     form.resetFields();
@@ -172,6 +223,7 @@ export function EventListPage() {
           resolveMutation.mutate({ id: resolveEvent.id, payload });
         }}
       />
+      <EventKeywordsModal open={keywordsOpen} onClose={() => setKeywordsOpen(false)} />
     </div>
   );
 }

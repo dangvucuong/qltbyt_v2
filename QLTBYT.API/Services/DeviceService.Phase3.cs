@@ -23,15 +23,15 @@ public partial class DeviceService
         device.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
-        var note = request.Note?.Trim() ?? "Chuyen giao thiet bi";
+        var note = request.Note?.Trim() ?? "Chuyển giao thiết bị";
         await _deviceEventService.CreateForDeviceAsync(id, new CreateDeviceEventRequest
         {
             EventTypeId = 4,
             Content = $"{note} (tu DV {fromOrg} -> {request.ToOrganizationId})",
-            Keyword = "Chuyen giao"
+            Keyword = "Chuyển giao"
         });
 
-        await _audit.WriteAsync(_currentUser.UserId, $"Chuyen giao TB {device.DeviceCode}", id);
+        await _audit.WriteAsync(_currentUser.UserId, $"Chuyển giao TB {device.DeviceCode}", id);
         return await GetDeviceByIdAsync(id);
     }
 
@@ -51,7 +51,7 @@ public partial class DeviceService
             .ToListAsync();
         items.AddRange(events.Select(e => new DeviceHistoryItemDto
         {
-            Type = "Su co / yeu cau",
+            Type = "Sự cố / yêu cầu",
             Content = e.Content,
             Timestamp = e.EventDateTime,
             Actor = e.AccountUsername
@@ -66,7 +66,7 @@ public partial class DeviceService
                 .ToListAsync();
             items.AddRange(usage.Select(u => new DeviceHistoryItemDto
             {
-                Type = "Nhat ky su dung",
+                Type = "Nhật ký sử dụng",
                 Content = $"Gio: {u.Hours}, Ca: {u.Sessions}",
                 Timestamp = u.InputDate
             }));
@@ -125,7 +125,7 @@ public partial class DeviceService
     {
         var device = await _context.Devices.FirstOrDefaultAsync(d => d.Id == deviceId);
         if (device is null || !IsDeviceAllowed(device))
-            throw new InvalidOperationException("Khong tim thay thiet bi.");
+            throw new InvalidOperationException("Không tìm thấy thiết bị.");
 
         var entity = new DeviceSupply
         {
@@ -187,7 +187,7 @@ public partial class DeviceService
         }
 
         await _context.SaveChangesAsync();
-        await _audit.WriteAsync(_currentUser.UserId, $"Import Excel {count} thiet bi");
+        await _audit.WriteAsync(_currentUser.UserId, $"Import Excel {count} thiết bị");
         return count;
     }
 

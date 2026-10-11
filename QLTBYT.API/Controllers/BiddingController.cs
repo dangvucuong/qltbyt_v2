@@ -33,7 +33,7 @@ public class BiddingController : ControllerBase
     {
         var item = await _biddingService.GetByIdAsync(id);
         if (item is null)
-            return NotFound(ApiResponse<BiddingPackageDto>.CreateFail("Khong tim thay goi thau."));
+            return NotFound(ApiResponse<BiddingPackageDto>.CreateFail("Không tìm thấy gói thầu."));
         return Ok(ApiResponse<BiddingPackageDto>.CreateSuccess(item));
     }
 
@@ -44,7 +44,7 @@ public class BiddingController : ControllerBase
         try
         {
             var item = await _biddingService.CreateAsync(request);
-            return Ok(ApiResponse<BiddingPackageDto>.CreateSuccess(item, "Them goi thau thanh cong."));
+            return Ok(ApiResponse<BiddingPackageDto>.CreateSuccess(item, "Thêm gói thầu thành công."));
         }
         catch (InvalidOperationException ex)
         {
@@ -58,8 +58,8 @@ public class BiddingController : ControllerBase
     {
         var item = await _biddingService.UpdateAsync(id, request);
         if (item is null)
-            return NotFound(ApiResponse<BiddingPackageDto>.CreateFail("Khong tim thay goi thau."));
-        return Ok(ApiResponse<BiddingPackageDto>.CreateSuccess(item, "Cap nhat goi thau thanh cong."));
+            return NotFound(ApiResponse<BiddingPackageDto>.CreateFail("Không tìm thấy gói thầu."));
+        return Ok(ApiResponse<BiddingPackageDto>.CreateSuccess(item, "Cập nhật gói thầu thành công."));
     }
 
     [HttpDelete("{id:int}")]
@@ -68,8 +68,8 @@ public class BiddingController : ControllerBase
     {
         var ok = await _biddingService.DeleteAsync(id);
         if (!ok)
-            return NotFound(ApiResponse<object>.CreateFail("Khong tim thay goi thau."));
-        return Ok(ApiResponse<object>.CreateSuccess(new { }, "Xoa goi thau thanh cong."));
+            return NotFound(ApiResponse<object>.CreateFail("Không tìm thấy gói thầu."));
+        return Ok(ApiResponse<object>.CreateSuccess(new { }, "Xóa gói thầu thành công."));
     }
 
     [HttpGet("{id:int}/devices")]

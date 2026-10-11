@@ -56,19 +56,19 @@ public partial class ReportService
     {
         var rows = await BuildBaocaoAssetRowsAsync(query);
         using var workbook = new XLWorkbook();
-        var sheet = workbook.Worksheets.Add("Bao cao tai san");
-        sheet.Cell(1, 1).Value = "Ten TB";
-        sheet.Cell(1, 2).Value = "Hang SX";
-        sheet.Cell(1, 3).Value = "Ky hieu";
+        var sheet = workbook.Worksheets.Add("Báo cáo tài sản");
+        sheet.Cell(1, 1).Value = "Tên TB";
+        sheet.Cell(1, 2).Value = "Hãng SX";
+        sheet.Cell(1, 3).Value = "Ký hiệu";
         sheet.Cell(1, 4).Value = "Serial";
-        sheet.Cell(1, 5).Value = "Don vi";
-        sheet.Cell(1, 6).Value = "Nhom loc";
-        sheet.Cell(1, 7).Value = "Thanh tien";
-        sheet.Cell(1, 8).Value = "Ngay tiep nhan";
-        sheet.Cell(1, 9).Value = "Khau hao";
-        sheet.Cell(1, 10).Value = "So luong";
-        sheet.Cell(1, 11).Value = "Don vi tinh";
-        sheet.Cell(1, 12).Value = "Ma dinh danh";
+        sheet.Cell(1, 5).Value = "Đơn vị";
+        sheet.Cell(1, 6).Value = "Nhóm lọc";
+        sheet.Cell(1, 7).Value = "Thành tiền";
+        sheet.Cell(1, 8).Value = "Ngày tiếp nhận";
+        sheet.Cell(1, 9).Value = "Khấu hao";
+        sheet.Cell(1, 10).Value = "Số lượng";
+        sheet.Cell(1, 11).Value = "Đơn vị tính";
+        sheet.Cell(1, 12).Value = "Mã định danh";
         var r = 2;
         foreach (var row in rows)
         {
@@ -96,21 +96,21 @@ public partial class ReportService
     {
         var rows = await BuildBaocaoOperationalRowsAsync(query);
         using var workbook = new XLWorkbook();
-        var sheet = workbook.Worksheets.Add("Bao cao chuyen mon");
-        sheet.Cell(1, 1).Value = "Ten TB";
-        sheet.Cell(1, 2).Value = "Hang SX";
-        sheet.Cell(1, 3).Value = "Ky hieu";
+        var sheet = workbook.Worksheets.Add("Báo cáo chuyên môn");
+        sheet.Cell(1, 1).Value = "Tên TB";
+        sheet.Cell(1, 2).Value = "Hãng SX";
+        sheet.Cell(1, 3).Value = "Ký hiệu";
         sheet.Cell(1, 4).Value = "Serial";
-        sheet.Cell(1, 5).Value = "Don vi";
-        sheet.Cell(1, 6).Value = "Nhom loc";
-        sheet.Cell(1, 7).Value = "Han kiem dinh";
-        sheet.Cell(1, 8).Value = "Bat dau hong";
-        sheet.Cell(1, 9).Value = "Sua xong";
-        sheet.Cell(1, 10).Value = "Ghi chu";
-        sheet.Cell(1, 11).Value = "Thanh tien";
-        sheet.Cell(1, 12).Value = "So gio";
-        sheet.Cell(1, 13).Value = "So ca";
-        sheet.Cell(1, 14).Value = "Ma dinh danh";
+        sheet.Cell(1, 5).Value = "Đơn vị";
+        sheet.Cell(1, 6).Value = "Nhóm lọc";
+        sheet.Cell(1, 7).Value = "Hạn kiểm định";
+        sheet.Cell(1, 8).Value = "Bắt đầu hỏng";
+        sheet.Cell(1, 9).Value = "Sửa xong";
+        sheet.Cell(1, 10).Value = "Ghi chú";
+        sheet.Cell(1, 11).Value = "Thành tiền";
+        sheet.Cell(1, 12).Value = "Số giờ";
+        sheet.Cell(1, 13).Value = "Số ca";
+        sheet.Cell(1, 14).Value = "Mã định danh";
         var r = 2;
         foreach (var row in rows)
         {

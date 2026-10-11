@@ -292,7 +292,7 @@ public static class SampleDataVietnameseRefresher
             {
                 Id = nextC + 1,
                 Code = code,
-                Name = "Kim tiem vat tu y te (demo)",
+                Name = "Kim tiêm vật tư y tế (demo)",
                 ActiveIngredient = "Vat lieu y te",
                 CreatedAt = DateTime.UtcNow
             };
@@ -357,7 +357,7 @@ public static class SampleDataVietnameseRefresher
         {
             DeviceId = device002.Id,
             TypeId = 1,
-            Content = "May do huyet ap khong hoat dong - yeu cau kiem tra demo",
+            Content = "Máy đo huyết áp không hoạt động - yêu cầu kiểm tra demo",
             EventDateTime = DateTime.Now.AddHours(-2),
             StatusId = 1,
             AccountUsername = "user",

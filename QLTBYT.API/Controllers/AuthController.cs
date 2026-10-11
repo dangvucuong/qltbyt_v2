@@ -28,10 +28,10 @@ public class AuthController : ControllerBase
         var result = await _authService.LoginAsync(request);
         if (result is null)
         {
-            return Unauthorized(ApiResponse<LoginResponse>.CreateFail("Sai ten dang nhap hoac mat khau."));
+            return Unauthorized(ApiResponse<LoginResponse>.CreateFail("Sai tên đăng nhập hoặc mật khẩu."));
         }
 
-        return Ok(ApiResponse<LoginResponse>.CreateSuccess(result, "Dang nhap thanh cong."));
+        return Ok(ApiResponse<LoginResponse>.CreateSuccess(result, "Đăng nhập thành công."));
     }
 
     [Authorize]
@@ -44,13 +44,13 @@ public class AuthController : ControllerBase
             : 0;
         if (userId <= 0)
         {
-            return Unauthorized(ApiResponse<UserInfoDto>.CreateFail("Khong hop le."));
+            return Unauthorized(ApiResponse<UserInfoDto>.CreateFail("Không hợp lệ."));
         }
 
         var info = await _authService.GetUserInfoAsync(userId);
         if (info is null)
         {
-            return NotFound(ApiResponse<UserInfoDto>.CreateFail("Khong tim thay tai khoan."));
+            return NotFound(ApiResponse<UserInfoDto>.CreateFail("Không tìm thấy tài khoản."));
         }
 
         return Ok(ApiResponse<UserInfoDto>.CreateSuccess(info));
@@ -67,16 +67,16 @@ public class AuthController : ControllerBase
             : 0;
         if (userId <= 0)
         {
-            return Unauthorized(ApiResponse<object>.CreateFail("Khong hop le."));
+            return Unauthorized(ApiResponse<object>.CreateFail("Không hợp lệ."));
         }
 
         var ok = await _authService.ChangePasswordAsync(userId, request);
         if (!ok)
         {
-            return BadRequest(ApiResponse<object>.CreateFail("Mat khau cu khong dung."));
+            return BadRequest(ApiResponse<object>.CreateFail("Mật khẩu cũ không đúng."));
         }
 
-        return Ok(ApiResponse<object>.CreateSuccess(new { }, "Doi mat khau thanh cong."));
+        return Ok(ApiResponse<object>.CreateSuccess(new { }, "Đổi mật khẩu thành công."));
     }
 
     [AllowAnonymous]
@@ -89,7 +89,7 @@ public class AuthController : ControllerBase
         var result = await _authService.ForgotPasswordAsync(request, _environment.IsDevelopment());
         if (result is null)
         {
-            return NotFound(ApiResponse<ForgotPasswordResponse>.CreateFail("Khong tim thay tai khoan."));
+            return NotFound(ApiResponse<ForgotPasswordResponse>.CreateFail("Không tìm thấy tài khoản."));
         }
 
         return Ok(ApiResponse<ForgotPasswordResponse>.CreateSuccess(result));
@@ -104,9 +104,9 @@ public class AuthController : ControllerBase
         var ok = await _authService.ResetPasswordAsync(request);
         if (!ok)
         {
-            return BadRequest(ApiResponse<object>.CreateFail("Ma dat lai khong hop le hoac da het han."));
+            return BadRequest(ApiResponse<object>.CreateFail("Mã đặt lại không hợp lệ hoặc đã hết hạn."));
         }
 
-        return Ok(ApiResponse<object>.CreateSuccess(new { }, "Dat lai mat khau thanh cong."));
+        return Ok(ApiResponse<object>.CreateSuccess(new { }, "Đặt lại mật khẩu thành công."));
     }
 }

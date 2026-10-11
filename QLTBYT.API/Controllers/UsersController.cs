@@ -30,7 +30,7 @@ public class UsersController : ControllerBase
     {
         var user = await _userService.GetUserAsync(id);
         if (user is null)
-            return NotFound(ApiResponse<UserListDto>.CreateFail("Khong tim thay tai khoan."));
+            return NotFound(ApiResponse<UserListDto>.CreateFail("Không tìm thấy tài khoản."));
         return Ok(ApiResponse<UserListDto>.CreateSuccess(user));
     }
 
@@ -40,7 +40,7 @@ public class UsersController : ControllerBase
         try
         {
             var user = await _userService.CreateUserAsync(request);
-            return Ok(ApiResponse<UserListDto>.CreateSuccess(user, "Tao tai khoan thanh cong."));
+            return Ok(ApiResponse<UserListDto>.CreateSuccess(user, "Tạo tài khoản thành công."));
         }
         catch (InvalidOperationException ex)
         {
@@ -55,8 +55,8 @@ public class UsersController : ControllerBase
         {
             var user = await _userService.UpdateUserAsync(id, request);
             if (user is null)
-                return NotFound(ApiResponse<UserListDto>.CreateFail("Khong tim thay tai khoan."));
-            return Ok(ApiResponse<UserListDto>.CreateSuccess(user, "Cap nhat tai khoan thanh cong."));
+                return NotFound(ApiResponse<UserListDto>.CreateFail("Không tìm thấy tài khoản."));
+            return Ok(ApiResponse<UserListDto>.CreateSuccess(user, "Cập nhật tài khoản thành công."));
         }
         catch (InvalidOperationException ex)
         {
@@ -71,8 +71,8 @@ public class UsersController : ControllerBase
         {
             var ok = await _userService.DeleteUserAsync(id);
             if (!ok)
-                return NotFound(ApiResponse<object>.CreateFail("Khong tim thay tai khoan."));
-            return Ok(ApiResponse<object>.CreateSuccess(new { }, "Xoa tai khoan thanh cong."));
+                return NotFound(ApiResponse<object>.CreateFail("Không tìm thấy tài khoản."));
+            return Ok(ApiResponse<object>.CreateSuccess(new { }, "Xóa tài khoản thành công."));
         }
         catch (InvalidOperationException ex)
         {

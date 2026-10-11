@@ -29,14 +29,14 @@ public class NotificationsController : ControllerBase
     public async Task<ActionResult<ApiResponse<object>>> MarkRead(int id)
     {
         await _notificationService.MarkReadAsync(id);
-        return Ok(ApiResponse<object>.CreateSuccess(new { }, "Da danh dau da doc."));
+        return Ok(ApiResponse<object>.CreateSuccess(new { }, "Đã đánh dấu đã đọc."));
     }
 
     [HttpPut("read-all")]
     public async Task<ActionResult<ApiResponse<object>>> MarkAllRead()
     {
         await _notificationService.MarkAllReadAsync();
-        return Ok(ApiResponse<object>.CreateSuccess(new { }, "Da danh dau tat ca da doc."));
+        return Ok(ApiResponse<object>.CreateSuccess(new { }, "Đã đánh dấu tất cả đã đọc."));
     }
 }
 

@@ -35,17 +35,54 @@ import { LoadingCenter } from '@/components/LoadingCenter';
 import { DeviceReportModal } from '@/components/DeviceReportModal';
 import { TransferDeviceModal } from '@/components/TransferDeviceModal';
 import { DeviceCameraCapture } from '@/components/DeviceCameraCapture';
+import { DeviceUsageLogsPanel } from '@/components/DeviceUsageLogsPanel';
 import { useAuthStore } from '@/store/authStore';
 import { openPrintHtml } from '@/utils/openPrintHtml';
+import { apiUrl } from '@/utils/apiBase';
 
 function fileUrl(path?: string) {
   if (!path) return '#';
   const normalized = path.replace(/\\/g, '/');
   if (/^Captures\//i.test(normalized)) {
-    return `/captures/${normalized.replace(/^Captures\//i, '')}`;
+    return apiUrl(`/captures/${normalized.replace(/^Captures\//i, '')}`);
+  }
+  if (/^HDBaotri\//i.test(normalized)) {
+    return apiUrl(`/hdbaotri/${normalized.replace(/^HDBaotri\//i, '')}`);
   }
   const files = normalized.replace(/^FILELUU[/\\]/i, '');
-  return `/files/${files}`;
+  return apiUrl(`/files/${files}`);
+}
+
+function maintenanceContractUrl(deviceId: number, fileName?: string) {
+  if (!fileName?.trim()) return undefined;
+  return apiUrl(`/hdbaotri/${deviceId}/${encodeURIComponent(fileName.trim())}`);
+}
+
+const PROCUREMENT_LABELS: Record<string, string> = {
+  '1': 'Nguồn dự án',
+  '2': 'Quỹ phát triển sự nghiệp',
+  '3': 'Tài trợ - viện trợ',
+  '4': 'Nguồn ngân sách',
+  '5': 'Nguồn vay kích cầu',
+};
+
+const MAINTENANCE_LABELS: Record<number, string> = {
+  1: 'Tự bảo trì',
+  2: 'Bảo trì cơ bản',
+  3: 'Bảo trì trọn gói',
+  4: 'Bảo trì cơ bản có thay thế linh kiện',
+};
+
+function formatMarker(raw?: string) {
+  if (!raw?.trim()) return '—';
+  const d = dayjs(raw);
+  return d.isValid() ? d.format('DD/MM/YYYY') : raw;
+}
+
+function formatMoney(raw?: string) {
+  if (!raw?.trim()) return '—';
+  const n = Number(String(raw).replace(/,/g, ''));
+  return Number.isFinite(n) ? n.toLocaleString('vi-VN') : raw;
 }
 
 export function DeviceDetailPage() {
@@ -152,6 +189,23 @@ export function DeviceDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['device', deviceId] });
     },
     onError: () => message.error('Tải lên thất bại'),
+  });
+
+  const uploadContractMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const form = new FormData();
+      form.append('file', file);
+      await axiosClient.post(`/api/devices/${deviceId}/maintenance-contract`, form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    },
+    onSuccess: () => {
+      message.success('Upload hợp đồng bảo trì thành công');
+      queryClient.invalidateQueries({ queryKey: ['device', deviceId] });
+    },
+    onError: (err: { response?: { data?: { message?: string } } }) => {
+      message.error(err.response?.data?.message ?? 'Upload hợp đồng bảo trì thất bại');
+    },
   });
 
   const transferMutation = useMutation({
@@ -338,14 +392,61 @@ export function DeviceDetailPage() {
       />
       <Card className="app-card" title="Thông tin chung">
         <Descriptions bordered column={{ xs: 1, sm: 2 }} size="middle">
-          <Descriptions.Item label="Mã thiết bị">{d.deviceCode}</Descriptions.Item>
-          <Descriptions.Item label="Loại">{d.typeName}</Descriptions.Item>
-          <Descriptions.Item label="Đơn vị sử dụng">{d.organizationName}</Descriptions.Item>
-          <Descriptions.Item label="Trạng thái">{d.statusName}</Descriptions.Item>
+          <Descriptions.Item label="Mã thiết bị">{d.deviceCode || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Mã định danh">{d.identityCode || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Tên thiết bị" span={2}>{d.name || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Tên chuyên ngành">{d.specializedName || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Loại">{d.typeName || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Nhóm thiết bị">{d.deviceGroup || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Phân loại">{d.classification || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Đơn vị sử dụng">{d.organizationName || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Trạng thái">{d.statusName || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Tình trạng">{d.conditionNote || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Ký hiệu / Model">{d.modelCode || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Serial">{d.serial || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Thông số kỹ thuật" span={2}>
+            {d.technicalSpecs || '—'}
+          </Descriptions.Item>
           <Descriptions.Item label="Hãng sản xuất">{d.manufacturer || '—'}</Descriptions.Item>
           <Descriptions.Item label="Nước sản xuất">{d.countryOfOrigin || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Năm sản xuất">{d.yearOfManufacture || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Cơ sở">{d.locationCode || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Nguồn mua sắm">
+            {d.procurementSource
+              ? PROCUREMENT_LABELS[d.procurementSource] || d.procurementSource
+              : '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Hình thức bảo trì">
+            {d.maintenanceOrgId != null
+              ? MAINTENANCE_LABELS[d.maintenanceOrgId] || String(d.maintenanceOrgId)
+              : '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Gói thầu">{d.biddingPackageCode || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Số lượng">
+            {d.quantity != null ? d.quantity : '—'}
+            {d.unit ? ` ${d.unit}` : ''}
+          </Descriptions.Item>
+          <Descriptions.Item label="Đơn giá">{formatMoney(d.unitPrice)}</Descriptions.Item>
+          <Descriptions.Item label="Thành tiền / nguyên giá">
+            {formatMoney(d.totalAmount)}
+          </Descriptions.Item>
           <Descriptions.Item label="Ngày tiếp nhận">
             {d.receivedDate ? dayjs(d.receivedDate).format('DD/MM/YYYY') : '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Đưa vào sử dụng">
+            {formatMarker(d.putIntoUseMarker)}
+          </Descriptions.Item>
+          <Descriptions.Item label="Mốc bảo hành">
+            {formatMarker(d.warrantyDueMarker)}
+          </Descriptions.Item>
+          <Descriptions.Item label="Mốc bảo trì">
+            {formatMarker(d.maintenanceDueMarker)}
+          </Descriptions.Item>
+          <Descriptions.Item label="Mốc hiệu chuẩn">
+            {formatMarker(d.calibrationDueMarker)}
+          </Descriptions.Item>
+          <Descriptions.Item label="Mốc kiểm định">
+            {formatMarker(d.inspectionDueMarker)}
           </Descriptions.Item>
           <Descriptions.Item label="Hạn kiểm định">
             {d.inspectionExpiryDate
@@ -353,8 +454,46 @@ export function DeviceDetailPage() {
               : '—'}
           </Descriptions.Item>
           <Descriptions.Item label="Thiết bị chính">{d.parentDeviceCode || '—'}</Descriptions.Item>
-          <Descriptions.Item label="Ghi chú">{d.note || '—'}</Descriptions.Item>
+          <Descriptions.Item label="Ghi chú" span={2}>{d.note || '—'}</Descriptions.Item>
         </Descriptions>
+      </Card>
+
+      <Card className="app-card" title="Hợp đồng bảo trì" style={{ marginTop: 16 }}>
+        <Space direction="vertical" size="middle" style={{ width: '100%' }}>
+          {d.legalDocumentRef ? (
+            <div>
+              <FileOutlined style={{ marginRight: 8, color: '#0d9488' }} />
+              <a
+                href={maintenanceContractUrl(deviceId, d.legalDocumentRef)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {d.legalDocumentRef}
+              </a>
+            </div>
+          ) : (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="Chưa có hợp đồng bảo trì"
+            />
+          )}
+          {canMaintain && (
+            <Upload
+              showUploadList={false}
+              beforeUpload={(file) => {
+                uploadContractMutation.mutate(file);
+                return false;
+              }}
+            >
+              <Button
+                icon={<UploadOutlined />}
+                loading={uploadContractMutation.isPending}
+              >
+                {d.legalDocumentRef ? 'Thay hợp đồng bảo trì' : 'Tải lên hợp đồng bảo trì'}
+              </Button>
+            </Upload>
+          )}
+        </Space>
       </Card>
       <Card className="app-card" style={{ marginTop: 16 }}>
         <Tabs
@@ -524,8 +663,11 @@ export function DeviceDetailPage() {
                     <Descriptions.Item label="Thông tin gói thầu" span={2}>
                       {legalQuery.data.biddingInfo || '—'}
                     </Descriptions.Item>
-                    <Descriptions.Item label="Mã thiết bị (HS)" span={2}>
-                      {legalQuery.data.deviceCodes || '—'}
+                    <Descriptions.Item label="Thiết bị (HS)" span={2}>
+                      {legalQuery.data.deviceDisplayName ||
+                        legalQuery.data.deviceCode ||
+                        legalQuery.data.deviceCodes ||
+                        '—'}
                     </Descriptions.Item>
                   </Descriptions>
                   {legalQuery.data.filePath && (
@@ -555,6 +697,13 @@ export function DeviceDetailPage() {
                     </Space>
                   )}
                 </>
+              ),
+            },
+            {
+              key: 'usage',
+              label: 'Nhật ký sử dụng',
+              children: (
+                <DeviceUsageLogsPanel deviceId={deviceId} canEdit={canMaintain} />
               ),
             },
             {

@@ -18,7 +18,7 @@ public class LegacyUsageJournalController : ControllerBase
         return Ok(ApiResponse<object>.CreateSuccess(new
         {
             deprecated = true,
-            message = "Nhat ky text/anh legacy (NhatkyTB.aspx, CaptureNhatky) khong duoc ho tro tren API moi.",
+            message = "Nhật ký text/ảnh legacy (NhatkyTB.aspx, CaptureNhatky) không được hỗ trợ trên API mới.",
             replacement = new
             {
                 usageLogsByDate = "/api/usage-logs",
@@ -33,7 +33,7 @@ public class LegacyUsageJournalController : ControllerBase
     public ActionResult<ApiResponse<object>> CaptureDeprecated()
     {
         return BadRequest(ApiResponse<object>.CreateFail(
-            "Chuc nang chup anh nhat ky legacy da deprecated. Su dung POST /api/usage-logs hoac bao su co thiet bi."));
+            "Chức năng chụp ảnh nhật ký legacy đã deprecated. Sử dụng POST /api/usage-logs hoặc báo sự cố thiết bị."));
     }
 
     [HttpPost]

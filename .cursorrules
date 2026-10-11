@@ -809,3 +809,44 @@ VITE_APP_TITLE=Quản Lý Thiết Bị Y Tế
 - Module Kho vật tư/thuốc
 - Responsive mobile
 - Performance optimization
+
+# Cursor Rules & Project Guidelines (.NET 7, React, SQL Server)
+
+## 1. General Rules & Communication
+- **Ngôn ngữ:** Luôn trả lời, giải thích code và viết chú thích (comments) bằng **tiếng Việt**.
+- **Chất lượng code:** Viết code sạch (Clean Code), dễ bảo trì, tuân thủ nguyên tắc SOLID và DRY (Don't Repeat Yourself).
+- **Xử lý lỗi:** Luôn bao bọc các đoạn code dễ sinh lỗi bằng try-catch thích hợp và trả về thông báo lỗi rõ ràng.
+
+---
+
+## 2. Backend (.NET 7 / C#)
+- ** Kiến trúc:** Tuân thủ Clean Architecture hoặc mô hình Layered Architecture tiêu chuẩn (Controllers, Services, Repositories/Interfaces).
+- **Async/Await:** Luôn sử dụng lập trình bất đồng bộ (`async`/`await`) cho các tác vụ I/O, gọi database hoặc gọi API bên ngoài.
+- **Dependency Injection:** Đăng ký các service thông qua DI Container trong `Program.cs` sử dụng đúng vòng đời (Transient, Scoped, Singleton).
+- **DTOs & Validation:** Không trả trực tiếp Entity ra ngoài API. Sử dụng Data Transfer Objects (DTOs) và áp dụng FluentValidation hoặc Data Annotations.
+- **LINQ:** Viết các câu lệnh LINQ tối ưu, tránh gọi `.ToList()` quá sớm gây tốn bộ nhớ.
+
+---
+
+## 3. Frontend (React / TypeScript)
+- **TypeScript:** Bắt buộc sử dụng TypeScript. Không dùng kiểu `any` trừ trường hợp bắt buộc; luôn định nghĩa `interface` hoặc `type` rõ ràng cho Props, State và API Response.
+- **Component Structure:** 
+  - Chia nhỏ component thành các file riêng biệt (Functional Components với Arrow Functions).
+  - Sử dụng Hooks chuẩn của React và custom hooks khi cần tái sử dụng logic.
+- **Quản lý State & API:** 
+  - Sử dụng React Query (TanStack Query) hoặc Redux Toolkit cho việc gọi API và caching dữ liệu (ưu tiên React Query cho các API đơn giản).
+  - Xử lý trạng thái Loading, Error và Empty state đầy đủ trên giao diện.
+- **Styling:** Tuân thủ theo framework CSS đang dùng trong dự án (ví dụ: Tailwind CSS hoặc Styled Components).
+
+---
+
+## 4. Database (SQL Server)
+- **Tối ưu hóa câu lệnh:** Viết các câu lệnh SQL hoặc Stored Procedures hiệu quả, tránh dùng `SELECT *`, luôn chỉ định rõ các cột cần lấy.
+- **Index:** Chú ý đề xuất đánh index (`CREATE INDEX`) cho các cột thường xuyên dùng trong mệnh đề `WHERE`, `JOIN` hoặc `ORDER BY`.
+- **Tương thích:** Đảm bảo cú pháp SQL tương thích tốt với SQL Server (ưu tiên chuẩn T-SQL).
+
+---
+
+## 5. Coding Habits & Workflow
+- **Test trước khi xong:** Khi viết một tính năng mới, hãy gợi ý cấu trúc test hoặc viết unit test/integration test nếu dự án có cấu hình sẵn.
+- **Khônga phá vỡ code cũ:** Khi sửa đổi code hiện tại, hãy kiểm tra kỹ các file liên quan để tránh làm hỏng các tính năng cũ.

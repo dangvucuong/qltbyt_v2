@@ -12,6 +12,12 @@ export default defineConfig({
     proxy: {
       '/api': { target: 'http://localhost:5149', changeOrigin: true },
       '/files': { target: 'http://localhost:5149', changeOrigin: true },
+      '/captures': { target: 'http://localhost:5149', changeOrigin: true },
+      '/hdbaotri': { target: 'http://localhost:5149', changeOrigin: true },
     },
+  },
+  preview: {
+    host: '0.0.0.0',
+    port: 8017,
   },
 });

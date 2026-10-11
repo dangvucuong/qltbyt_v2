@@ -263,7 +263,14 @@ export function DeviceListPage() {
                 <Link to={`/devices/${row.id}`}>{row.deviceCode || row.id}</Link>
               ),
             },
-            { title: 'Tên thiết bị', dataIndex: 'name', ellipsis: true },
+            {
+              title: 'Tên thiết bị',
+              dataIndex: 'name',
+              ellipsis: true,
+              render: (name, row) => (
+                <Link to={`/devices/${row.id}`}>{name || '—'}</Link>
+              ),
+            },
             { title: 'Loại', dataIndex: 'typeName', width: 140 },
             { title: 'Đơn vị', dataIndex: 'organizationName', ellipsis: true },
             {

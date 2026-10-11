@@ -33,11 +33,11 @@ public class PdfSignatureService : IPdfSignatureService
         if (!System.IO.File.Exists(sourcePath)) return null;
 
         var ext = System.IO.Path.GetExtension(sourcePath).ToLowerInvariant();
-        if (ext != ".pdf") throw new InvalidOperationException("Chi ho tro ky so file PDF.");
+        if (ext != ".pdf") throw new InvalidOperationException("Chỉ hỗ trợ ký số file PDF.");
 
         var signedName = System.IO.Path.GetFileNameWithoutExtension(sourcePath) + "_kyso.pdf";
         var signedPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(sourcePath)!, signedName);
-        var stampText = $"Da ky so: {signerName} - {DateTime.Now:dd/MM/yyyy HH:mm}";
+        var stampText = $"Đã ký số: {signerName} - {DateTime.Now:dd/MM/yyyy HH:mm}";
 
         using (var reader = new PdfReader(sourcePath))
         using (var writer = new PdfWriter(signedPath))
@@ -63,7 +63,7 @@ public class PdfSignatureService : IPdfSignatureService
             : System.IO.Path.Combine("FILELUU", file.DeviceId?.ToString() ?? "0", signedName).Replace('\\', '/');
 
         file.Path = newRelative;
-        file.Description = (file.Description ?? "") + " [Ky so]";
+        file.Description = (file.Description ?? "") + " [Ký số]";
         file.FileDate = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 

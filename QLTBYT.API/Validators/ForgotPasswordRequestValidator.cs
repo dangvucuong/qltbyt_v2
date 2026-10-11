@@ -9,6 +9,6 @@ public class ForgotPasswordRequestValidator : AbstractValidator<ForgotPasswordRe
     {
         RuleFor(x => x)
             .Must(x => !string.IsNullOrWhiteSpace(x.Email) || !string.IsNullOrWhiteSpace(x.Username))
-            .WithMessage("Can nhap email hoac ten dang nhap.");
+            .WithMessage("Cần nhập email hoặc tên đăng nhập.");
     }
 }

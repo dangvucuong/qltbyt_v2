@@ -1,0 +1,22 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=YOUR_SQL_SERVER;Database=db_QLTBYT;User Id=sa;Password=YOUR_PASSWORD;TrustServerCertificate=True"
+  },
+  "JwtSettings": {
+    "SecretKey": "REPLACE_WITH_LONG_RANDOM_SECRET_AT_LEAST_32_CHARS",
+    "Issuer": "QLTBYT-API",
+    "Audience": "QLTBYT-Frontend",
+    "ExpiryHours": 24
+  },
+  "Cors": {
+    "AllowedOrigins": [
+      "http://27.118.16.152:8017"
+    ]
+  },
+  "SmtpSettings": {
+    "Enabled": false
+  },
+  "FirebaseSettings": {
+    "Enabled": false
+  }
+}

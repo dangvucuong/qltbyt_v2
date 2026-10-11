@@ -98,10 +98,10 @@ builder.Services.AddControllers()
         {
             var errors = context.ModelState
                 .Where(e => e.Value?.Errors.Count > 0)
-                .SelectMany(e => e.Value!.Errors.Select(x => string.IsNullOrWhiteSpace(x.ErrorMessage) ? "Du lieu khong hop le." : x.ErrorMessage))
+                .SelectMany(e => e.Value!.Errors.Select(x => string.IsNullOrWhiteSpace(x.ErrorMessage) ? "Dữ liệu không hợp lệ." : x.ErrorMessage))
                 .ToList();
 
-            var response = ApiResponse<object>.CreateFail("Du lieu khong hop le.", errors);
+            var response = ApiResponse<object>.CreateFail("Dữ liệu không hợp lệ.", errors);
             return new BadRequestObjectResult(response);
         };
     });
@@ -131,10 +131,12 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? new[] { "http://localhost:5173" };
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("FrontendDev", policy =>
-        policy.WithOrigins("http://localhost:5173")
+    options.AddPolicy("Frontend", policy =>
+        policy.WithOrigins(corsOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod());
 });
@@ -151,30 +153,33 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("FrontendDev");
+app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 
 var fileRoot = Path.Combine(app.Environment.ContentRootPath, "FILELUU");
-if (Directory.Exists(fileRoot))
+Directory.CreateDirectory(fileRoot);
+app.UseStaticFiles(new StaticFileOptions
 {
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(fileRoot),
-        RequestPath = "/files"
-    });
-}
-
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(fileRoot),
+    RequestPath = "/files"
+});
 
 var capturesRoot = Path.Combine(app.Environment.ContentRootPath, "Captures");
-if (Directory.Exists(capturesRoot))
+Directory.CreateDirectory(capturesRoot);
+app.UseStaticFiles(new StaticFileOptions
 {
-    app.UseStaticFiles(new StaticFileOptions
-    {
-        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(capturesRoot),
-        RequestPath = "/captures"
-    });
-}
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(capturesRoot),
+    RequestPath = "/captures"
+});
+
+var hdBaotriRoot = Path.Combine(app.Environment.ContentRootPath, "HDBaotri");
+Directory.CreateDirectory(hdBaotriRoot);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(hdBaotriRoot),
+    RequestPath = "/hdbaotri"
+});
 app.MapControllers();
 
 await using (var scope = app.Services.CreateAsyncScope())

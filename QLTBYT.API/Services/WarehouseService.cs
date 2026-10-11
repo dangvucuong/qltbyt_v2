@@ -122,7 +122,7 @@ public class WarehouseService : IWarehouseService
 
     public async Task<StockImportDto> ImportStockAsync(CreateStockImportRequest request)
     {
-        if (request.Quantity <= 0) throw new InvalidOperationException("So luong nhap phai lon hon 0.");
+        if (request.Quantity <= 0) throw new InvalidOperationException("Số lượng nhập phải lớn hơn 0.");
         var nextId = await _context.StockImports.MaxAsync(i => (int?)i.Id) ?? 0;
         var entity = new StockImport
         {
@@ -163,11 +163,11 @@ public class WarehouseService : IWarehouseService
 
     public async Task<StockExportDto> ExportStockAsync(CreateStockExportRequest request)
     {
-        if (request.Quantity <= 0) throw new InvalidOperationException("So luong xuat phai lon hon 0.");
+        if (request.Quantity <= 0) throw new InvalidOperationException("Số lượng xuất phải lớn hơn 0.");
         var import = await _context.StockImports.FirstOrDefaultAsync(i => i.Id == request.ImportId);
-        if (import is null) throw new InvalidOperationException("Khong tim thay dong nhap kho.");
+        if (import is null) throw new InvalidOperationException("Không tìm thấy dòng nhập kho.");
         var balance = import.StockBalance ?? 0;
-        if (request.Quantity > balance) throw new InvalidOperationException("So luong xuat vuot ton kho.");
+        if (request.Quantity > balance) throw new InvalidOperationException("Số lượng xuất vượt tồn kho.");
         import.StockBalance = balance - request.Quantity;
         var nextId = await _context.StockExports.MaxAsync(e => (int?)e.Id) ?? 0;
         var export = new StockExport
@@ -208,12 +208,12 @@ public class WarehouseService : IWarehouseService
             .ToListAsync();
         var names = await _context.MedicineCommodities.AsNoTracking().ToDictionaryAsync(c => c.Id, c => c.Name ?? "");
         using var workbook = new ClosedXML.Excel.XLWorkbook();
-        var sheet = workbook.Worksheets.Add("Nhap kho");
+        var sheet = workbook.Worksheets.Add("Nhập kho");
         sheet.Cell(1, 1).Value = "ID";
-        sheet.Cell(1, 2).Value = "Hang hoa";
-        sheet.Cell(1, 3).Value = "SL nhap";
-        sheet.Cell(1, 4).Value = "Ton";
-        sheet.Cell(1, 5).Value = "Ngay";
+        sheet.Cell(1, 2).Value = "Hàng hóa";
+        sheet.Cell(1, 3).Value = "SL nhập";
+        sheet.Cell(1, 4).Value = "Tồn";
+        sheet.Cell(1, 5).Value = "Ngày";
         int r = 2;
         foreach (var i in imports)
         {

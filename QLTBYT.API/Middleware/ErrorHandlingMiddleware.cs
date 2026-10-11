@@ -31,7 +31,7 @@ public class ErrorHandlingMiddleware
 
             context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             context.Response.ContentType = "application/json";
-            var payload = ApiResponse<object>.CreateFail("Loi he thong. Vui long thu lai.");
+            var payload = ApiResponse<object>.CreateFail("Lỗi hệ thống. Vui lòng thử lại.");
             await context.Response.WriteAsync(JsonSerializer.Serialize(payload));
         }
     }

@@ -1,6 +1,6 @@
 import { Button, Card, Form, Input, message, Typography } from 'antd';
 import { Link, useSearchParams } from 'react-router-dom';
-import axios from 'axios';
+import axiosClient from '@/api/axiosClient';
 import type { ApiResponse } from '@/types/api';
 
 export function ResetPasswordPage() {
@@ -23,7 +23,7 @@ export function ResetPasswordPage() {
             initialValues={{ username, resetToken: token }}
             onFinish={async (values) => {
               try {
-                await axios.post<ApiResponse<object>>('/api/auth/reset-password', values);
+                await axiosClient.post<ApiResponse<object>>('/api/auth/reset-password', values);
                 message.success('Đã cập nhật mật khẩu');
                 form.resetFields(['newPassword']);
               } catch {

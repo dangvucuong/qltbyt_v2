@@ -47,6 +47,28 @@ export interface DeviceDetail extends DeviceListItem {
   serial?: string;
   manufacturer?: string;
   countryOfOrigin?: string;
+  yearOfManufacture?: string;
+  technicalSpecs?: string;
+  conditionNote?: string;
+  deviceGroup?: string;
+  classification?: string;
+  handoverOrgId?: number;
+  maintenanceOrgId?: number;
+  biddingPackageCode?: string;
+  quantity?: number;
+  unit?: string;
+  unitPrice?: string;
+  totalAmount?: string;
+  locationCode?: string;
+  procurementSource?: string;
+  warrantyDueMarker?: string;
+  maintenanceDueMarker?: string;
+  calibrationDueMarker?: string;
+  inspectionDueMarker?: string;
+  putIntoUseMarker?: string;
+  specializedName?: string;
+  /** Tên file hợp đồng bảo trì (IDHoso / HDBaotri/{id}/) */
+  legalDocumentRef?: string;
   parentDeviceCode?: string;
   receivedDate?: string;
   note?: string;

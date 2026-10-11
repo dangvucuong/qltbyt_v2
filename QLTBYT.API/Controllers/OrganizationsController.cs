@@ -30,7 +30,7 @@ public class OrganizationsController : ControllerBase
     {
         var item = await _organizationService.GetOrganizationAsync(id);
         if (item is null)
-            return NotFound(ApiResponse<OrganizationListDto>.CreateFail("Khong tim thay don vi."));
+            return NotFound(ApiResponse<OrganizationListDto>.CreateFail("Không tìm thấy đơn vị."));
         return Ok(ApiResponse<OrganizationListDto>.CreateSuccess(item));
     }
 
@@ -41,7 +41,7 @@ public class OrganizationsController : ControllerBase
         try
         {
             var item = await _organizationService.CreateOrganizationAsync(request);
-            return Ok(ApiResponse<OrganizationListDto>.CreateSuccess(item, "Them don vi thanh cong."));
+            return Ok(ApiResponse<OrganizationListDto>.CreateSuccess(item, "Thêm đơn vị thành công."));
         }
         catch (InvalidOperationException ex)
         {
@@ -55,8 +55,8 @@ public class OrganizationsController : ControllerBase
     {
         var item = await _organizationService.UpdateOrganizationAsync(id, request);
         if (item is null)
-            return NotFound(ApiResponse<OrganizationListDto>.CreateFail("Khong tim thay don vi."));
-        return Ok(ApiResponse<OrganizationListDto>.CreateSuccess(item, "Cap nhat don vi thanh cong."));
+            return NotFound(ApiResponse<OrganizationListDto>.CreateFail("Không tìm thấy đơn vị."));
+        return Ok(ApiResponse<OrganizationListDto>.CreateSuccess(item, "Cập nhật đơn vị thành công."));
     }
 
     [HttpDelete("{id:int}")]
@@ -67,8 +67,8 @@ public class OrganizationsController : ControllerBase
         {
             var ok = await _organizationService.DeleteOrganizationAsync(id);
             if (!ok)
-                return NotFound(ApiResponse<object>.CreateFail("Khong tim thay don vi."));
-            return Ok(ApiResponse<object>.CreateSuccess(new { }, "Xoa don vi thanh cong."));
+                return NotFound(ApiResponse<object>.CreateFail("Không tìm thấy đơn vị."));
+            return Ok(ApiResponse<object>.CreateSuccess(new { }, "Xóa đơn vị thành công."));
         }
         catch (InvalidOperationException ex)
         {

@@ -17,6 +17,7 @@ import {
   FileProtectOutlined,
   QrcodeOutlined,
   AuditOutlined,
+  HistoryOutlined,
 } from '@ant-design/icons';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
@@ -33,6 +34,8 @@ export function MainLayout() {
 
   const selected = location.pathname.startsWith('/legal-documents')
     ? '/legal-documents'
+    : location.pathname.startsWith('/admin/system-logs')
+    ? '/admin/system-logs'
     : location.pathname.startsWith('/admin/master')
     ? '/admin/master'
     : location.pathname.startsWith('/organizations')
@@ -158,6 +161,11 @@ export function MainLayout() {
                     key: '/admin/master',
                     icon: <SettingOutlined />,
                     label: <Link to="/admin/master">Danh mục</Link>,
+                  },
+                  {
+                    key: '/admin/system-logs',
+                    icon: <HistoryOutlined />,
+                    label: <Link to="/admin/system-logs">Nhật ký hệ thống</Link>,
                   },
                   {
                     key: '/users',

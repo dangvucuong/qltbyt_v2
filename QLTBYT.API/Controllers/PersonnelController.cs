@@ -30,7 +30,7 @@ public class PersonnelController : ControllerBase
     {
         var item = await _personnelService.GetByIdAsync(id);
         if (item is null)
-            return NotFound(ApiResponse<PersonnelDto>.CreateFail("Khong tim thay nhan su."));
+            return NotFound(ApiResponse<PersonnelDto>.CreateFail("Không tìm thấy nhân sự."));
         return Ok(ApiResponse<PersonnelDto>.CreateSuccess(item));
     }
 
@@ -40,7 +40,7 @@ public class PersonnelController : ControllerBase
         try
         {
             var item = await _personnelService.CreateAsync(request);
-            return Ok(ApiResponse<PersonnelDto>.CreateSuccess(item, "Them nhan su thanh cong."));
+            return Ok(ApiResponse<PersonnelDto>.CreateSuccess(item, "Thêm nhân sự thành công."));
         }
         catch (InvalidOperationException ex)
         {
@@ -53,8 +53,8 @@ public class PersonnelController : ControllerBase
     {
         var item = await _personnelService.UpdateAsync(id, request);
         if (item is null)
-            return NotFound(ApiResponse<PersonnelDto>.CreateFail("Khong tim thay nhan su."));
-        return Ok(ApiResponse<PersonnelDto>.CreateSuccess(item, "Cap nhat nhan su thanh cong."));
+            return NotFound(ApiResponse<PersonnelDto>.CreateFail("Không tìm thấy nhân sự."));
+        return Ok(ApiResponse<PersonnelDto>.CreateSuccess(item, "Cập nhật nhân sự thành công."));
     }
 
     [HttpDelete("{id:int}")]
@@ -62,8 +62,8 @@ public class PersonnelController : ControllerBase
     {
         var ok = await _personnelService.DeleteAsync(id);
         if (!ok)
-            return NotFound(ApiResponse<object>.CreateFail("Khong tim thay nhan su."));
-        return Ok(ApiResponse<object>.CreateSuccess(new { }, "Xoa nhan su thanh cong."));
+            return NotFound(ApiResponse<object>.CreateFail("Không tìm thấy nhân sự."));
+        return Ok(ApiResponse<object>.CreateSuccess(new { }, "Xóa nhân sự thành công."));
     }
 }
 

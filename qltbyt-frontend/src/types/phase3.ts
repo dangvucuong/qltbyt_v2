@@ -128,18 +128,49 @@ export interface LegalDocumentItem {
   id: number;
   inspectionCertificate?: string;
   importPermit?: string;
+  importPermitExpiry?: string;
   circulationPermit?: string;
+  circulationPermitExpiry?: string;
+  certificateOfOrigin?: string;
+  originCountryId?: string;
+  qualityCertificate?: string;
+  manufactureYear?: string;
+  customsDeclaration?: string;
+  packingList?: string;
+  billOfLading?: string;
+  importInvoice?: string;
+  salesInvoice?: string;
   filePath?: string;
   biddingInfo?: string;
   priceWithVat?: number;
+  priceWithoutVat?: number;
+  depreciationInfo?: string;
+  fundingSource?: string;
+  /** Giá trị gốc MaThietbi — legacy thường là ID thiết bị */
   deviceCodes?: string;
+  deviceCode?: string;
+  deviceDisplayName?: string;
 }
 
 export interface CreateLegalDocumentPayload {
   inspectionCertificate?: string;
   importPermit?: string;
+  importPermitExpiry?: string;
   circulationPermit?: string;
+  circulationPermitExpiry?: string;
+  certificateOfOrigin?: string;
+  qualityCertificate?: string;
+  manufactureYear?: string;
+  customsDeclaration?: string;
+  packingList?: string;
+  billOfLading?: string;
+  importInvoice?: string;
+  salesInvoice?: string;
   biddingInfo?: string;
   priceWithVat?: number;
+  priceWithoutVat?: number;
+  depreciationInfo?: string;
+  fundingSource?: string;
+  /** ID thiết bị (giống combo ValueField=ID trên thongtinhs.aspx) */
   deviceCodes?: string;
 }

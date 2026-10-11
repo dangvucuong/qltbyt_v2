@@ -69,31 +69,62 @@ export function DashboardPage() {
       <Row gutter={[16, 16]}>
         <Col xs={24} lg={12}>
           <Card className="app-card" title="Theo trạng thái">
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
+            <ResponsiveContainer width="100%" height={340}>
+              <PieChart margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
                 <Pie
                   data={summary?.byStatus ?? []}
                   dataKey="value"
                   nameKey="label"
-                  outerRadius={95}
-                  label={(e) => `${e.label}: ${e.value}`}
+                  outerRadius={100}
+                  innerRadius={48}
+                  paddingAngle={1}
+                  labelLine={false}
+                  label={({ percent, value }) =>
+                    percent != null && percent >= 0.08 ? String(value) : ''
+                  }
                 >
                   {(summary?.byStatus ?? []).map((_, i) => (
                     <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip />
-                <Legend />
+                <Tooltip
+                  formatter={(value: number, _name, item) => {
+                    const label = (item?.payload as { label?: string } | undefined)?.label ?? '';
+                    return [`${value}`, label];
+                  }}
+                />
+                <Legend
+                  layout="horizontal"
+                  verticalAlign="bottom"
+                  wrapperStyle={{ paddingTop: 12, fontSize: 12 }}
+                  formatter={(value) => {
+                    const row = (summary?.byStatus ?? []).find((x) => x.label === value);
+                    return row ? `${value}: ${row.value}` : value;
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </Card>
         </Col>
         <Col xs={24} lg={12}>
           <Card className="app-card" title="Theo loại thiết bị">
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={summary?.byType ?? []} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-                <YAxis allowDecimals={false} width={40} />
+            <ResponsiveContainer width="100%" height={340}>
+              <BarChart
+                data={summary?.byType ?? []}
+                margin={{ top: 8, right: 8, left: 0, bottom: 72 }}
+              >
+                <XAxis
+                  dataKey="label"
+                  interval={0}
+                  angle={-35}
+                  textAnchor="end"
+                  height={80}
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={(v: string) =>
+                    v && v.length > 18 ? `${v.slice(0, 16)}…` : v
+                  }
+                />
+                <YAxis allowDecimals={false} width={44} />
                 <Tooltip />
                 <Bar dataKey="value" fill="#0d9488" radius={[6, 6, 0, 0]} name="Số lượng" />
               </BarChart>

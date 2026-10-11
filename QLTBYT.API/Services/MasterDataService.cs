@@ -49,6 +49,18 @@ public class MasterDataService : IMasterDataService
             .Select(k => new MasterItemDto { Id = k.Id, Name = k.Keyword.Trim() })
             .ToListAsync();
 
+    public async Task<List<MasterItemDto>> GetPersonnelTypesAsync() =>
+        await _context.PersonnelTypes.AsNoTracking()
+            .OrderBy(t => t.Name)
+            .Select(t => new MasterItemDto { Id = t.Id, Name = t.Name })
+            .ToListAsync();
+
+    public async Task<List<MasterItemDto>> GetDocumentTypesAsync() =>
+        await _context.DocumentTypes.AsNoTracking()
+            .OrderBy(t => t.Name)
+            .Select(t => new MasterItemDto { Id = t.Id, Name = t.Name })
+            .ToListAsync();
+
     public async Task<List<BiddingPackageLookupDto>> GetBiddingPackagesAsync() =>
         await _context.BiddingPackages.AsNoTracking()
             .OrderBy(b => b.Name)

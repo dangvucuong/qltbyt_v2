@@ -83,7 +83,7 @@ public class AuthService : IAuthService
 
         return new ForgotPasswordResponse
         {
-            Message = "Neu tai khoan ton tai, ma dat lai mat khau da duoc tao (Development: xem ResetToken).",
+            Message = "Nếu tài khoản tồn tại, mã đặt lại mật khẩu đã được tạo (Development: xem ResetToken).",
             ResetToken = includeDevToken ? token : null
         };
     }

@@ -155,14 +155,14 @@ public partial class DeviceService : IDeviceService
         var exists = await _context.Devices.AnyAsync(d => d.DeviceCode == request.DeviceCode);
         if (exists)
         {
-            throw new InvalidOperationException("Ma thiet bi da ton tai.");
+            throw new InvalidOperationException("Mã thiết bị đã tồn tại.");
         }
 
         var entity = _mapper.Map<Device>(request);
         _context.Devices.Add(entity);
         await _context.SaveChangesAsync();
         return await GetDeviceByIdAsync(entity.Id)
-            ?? throw new InvalidOperationException("Khong the doc thiet bi sau khi tao.");
+            ?? throw new InvalidOperationException("Không đọc được thiết bị sau khi tạo.");
     }
 
     public async Task<DeviceDetailDto?> UpdateDeviceAsync(int id, UpdateDeviceRequest request)
@@ -224,7 +224,7 @@ public partial class DeviceService : IDeviceService
     {
         if (await GetDeviceByIdAsync(deviceId) is null)
         {
-            throw new InvalidOperationException("Khong tim thay thiet bi.");
+            throw new InvalidOperationException("Không tìm thấy thiết bị.");
         }
 
         var relativePath = await _fileStorage.SaveDeviceFileAsync(deviceId, content, fileName);
@@ -242,7 +242,7 @@ public partial class DeviceService : IDeviceService
     public async Task<DeviceFileDto> AddFileWithPathAsync(int deviceId, string relativePath, string? description)
     {
         if (await GetDeviceByIdAsync(deviceId) is null)
-            throw new InvalidOperationException("Khong tim thay thiet bi.");
+            throw new InvalidOperationException("Không tìm thấy thiết bị.");
 
         var file = new DeviceFile
         {
@@ -254,6 +254,23 @@ public partial class DeviceService : IDeviceService
         _context.DeviceFiles.Add(file);
         await _context.SaveChangesAsync();
         return _mapper.Map<DeviceFileDto>(file);
+    }
+
+
+    public async Task<string> UploadMaintenanceContractAsync(int deviceId, Stream content, string fileName)
+    {
+        var queryable = _context.Devices.Where(d => d.Id == deviceId);
+        queryable = ApplyOrganizationScope(queryable);
+        var entity = await queryable.FirstOrDefaultAsync();
+        if (entity is null)
+            throw new InvalidOperationException("Không tìm thấy thiết bị.");
+
+        var relativePath = await _fileStorage.SaveMaintenanceContractAsync(deviceId, content, fileName);
+        var storedName = Path.GetFileName(relativePath);
+        entity.LegalDocumentRef = storedName;
+        entity.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+        return relativePath;
     }
 
     private IQueryable<Device> ApplyOrganizationScope(IQueryable<Device> queryable)

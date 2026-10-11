@@ -7,10 +7,10 @@ public class ChangePasswordRequestValidator : AbstractValidator<ChangePasswordRe
 {
     public ChangePasswordRequestValidator()
     {
-        RuleFor(x => x.CurrentPassword).NotEmpty().WithMessage("Mat khau cu khong duoc de trống.");
+        RuleFor(x => x.CurrentPassword).NotEmpty().WithMessage("Mật khẩu cũ không được để trống.");
         RuleFor(x => x.NewPassword)
-            .NotEmpty().WithMessage("Mat khau moi khong duoc de trống.")
-            .MinimumLength(6).WithMessage("Mat khau moi phai co it nhat 6 ky tu.")
-            .NotEqual(x => x.CurrentPassword).WithMessage("Mat khau moi phai khac mat khau cu.");
+            .NotEmpty().WithMessage("Mật khẩu mới không được để trống.")
+            .MinimumLength(6).WithMessage("Mật khẩu mới phải có ít nhất 6 ký tự.")
+            .NotEqual(x => x.CurrentPassword).WithMessage("Mật khẩu mới phải khác mật khẩu cũ.");
     }
 }

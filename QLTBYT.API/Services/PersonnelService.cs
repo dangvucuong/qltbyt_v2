@@ -60,7 +60,7 @@ public class PersonnelService : IPersonnelService
     public async Task<PersonnelDto> CreateAsync(CreatePersonnelRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.FullName))
-            throw new InvalidOperationException("Ho ten la bat buoc.");
+            throw new InvalidOperationException("Họ tên là bắt buộc.");
 
         var entity = new Personnel
         {
@@ -73,11 +73,11 @@ public class PersonnelService : IPersonnelService
             UserAccountId = request.UserAccountId
         };
         if (!IsAllowed(entity))
-            throw new InvalidOperationException("Khong co quyen voi don vi nay.");
+            throw new InvalidOperationException("Không có quyền với đơn vị này.");
 
         _context.PersonnelRecords.Add(entity);
         await _context.SaveChangesAsync();
-        await _audit.WriteAsync(_currentUser.UserId, $"Them nhan su {entity.FullName}");
+        await _audit.WriteAsync(_currentUser.UserId, $"Thêm nhân sự {entity.FullName}");
         return await GetByIdAsync(entity.Id) ?? Map(entity, new Dictionary<int, string?>());
     }
 
@@ -103,7 +103,7 @@ public class PersonnelService : IPersonnelService
             entity.UserAccountId = request.UserAccountId;
 
         await _context.SaveChangesAsync();
-        await _audit.WriteAsync(_currentUser.UserId, $"Cap nhat nhan su ID={id}");
+        await _audit.WriteAsync(_currentUser.UserId, $"Cập nhật nhân sự ID={id}");
         return await GetByIdAsync(id);
     }
 
@@ -114,7 +114,7 @@ public class PersonnelService : IPersonnelService
             return false;
         _context.PersonnelRecords.Remove(entity);
         await _context.SaveChangesAsync();
-        await _audit.WriteAsync(_currentUser.UserId, $"Xoa nhan su ID={id}");
+        await _audit.WriteAsync(_currentUser.UserId, $"Xóa nhân sự ID={id}");
         return true;
     }
 

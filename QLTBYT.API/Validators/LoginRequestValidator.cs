@@ -8,11 +8,11 @@ public class LoginRequestValidator : AbstractValidator<LoginRequest>
     public LoginRequestValidator()
     {
         RuleFor(x => x.Username)
-            .NotEmpty().WithMessage("Ten dang nhap khong duoc de trống.")
+            .NotEmpty().WithMessage("Tên đăng nhập không được để trống.")
             .MaximumLength(50);
 
         RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Mat khau khong duoc de trống.")
-            .MinimumLength(6).WithMessage("Mat khau phai co it nhat 6 ky tu.");
+            .NotEmpty().WithMessage("Mật khẩu không được để trống.")
+            .MinimumLength(6).WithMessage("Mật khẩu phải có ít nhất 6 ký tự.");
     }
 }

@@ -1,8 +1,10 @@
 import { Button, Card, Form, Input, message, Typography } from 'antd';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import axiosClient from '@/api/axiosClient';
 import type { ApiResponse, LoginResponse } from '@/types/api';
 import { useAuthStore } from '@/store/authStore';
+import { getApiOrigin } from '@/utils/apiBase';
 
 export function LoginPage() {
   const navigate = useNavigate();
@@ -15,7 +17,7 @@ export function LoginPage() {
 
   const onFinish = async (values: { username: string; password: string }) => {
     try {
-      const res = await axios.post<ApiResponse<LoginResponse>>('/api/auth/login', {
+      const res = await axiosClient.post<ApiResponse<LoginResponse>>('/api/auth/login', {
         username: values.username.trim(),
         password: values.password,
       });
@@ -30,9 +32,8 @@ export function LoginPage() {
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         if (!err.response) {
-          message.error(
-            'Không kết nối API. Chạy QLTBYT.API (cổng 5149) và frontend bằng npm run dev (cổng 5173).',
-          );
+          const api = getApiOrigin() || 'http://localhost:5149';
+          message.error(`Không kết nối API (${api}). Kiểm tra backend đang chạy và CORS.`);
           return;
         }
         const apiBody = err.response.data as ApiResponse<LoginResponse> | undefined;
@@ -43,6 +44,12 @@ export function LoginPage() {
         }
         if (err.response.status === 400) {
           message.error(apiMsg || 'Dữ liệu đăng nhập không hợp lệ.');
+          return;
+        }
+        if (err.response.status === 404) {
+          message.error(
+            `Không tìm thấy API đăng nhập (${err.config?.baseURL || ''}/api/auth/login). Kiểm tra VITE_API_BASE_URL và publish lại frontend.`,
+          );
           return;
         }
         message.error(apiMsg || `Lỗi máy chủ (${err.response.status}).`);

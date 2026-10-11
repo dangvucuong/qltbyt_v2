@@ -18,7 +18,7 @@ public partial class OrganizationService : IOrganizationService
     public async Task<OrganizationListDto> CreateOrganizationAsync(CreateOrganizationRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Name))
-            throw new InvalidOperationException("Ten don vi la bat buoc.");
+            throw new InvalidOperationException("Tên đơn vị là bắt buộc.");
 
         var entity = new Organization
         {
@@ -54,7 +54,7 @@ public partial class OrganizationService : IOrganizationService
     {
         var hasDevices = await _context.Devices.AnyAsync(d => d.OrganizationId == id);
         if (hasDevices)
-            throw new InvalidOperationException("Khong xoa don vi con thiet bi.");
+            throw new InvalidOperationException("Không xóa đơn vị còn thiết bị.");
 
         var entity = await _context.Organizations.FirstOrDefaultAsync(o => o.Id == id);
         if (entity is null) return false;

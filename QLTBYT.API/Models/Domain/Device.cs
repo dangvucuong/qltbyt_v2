@@ -119,6 +119,21 @@ public class Device
     [Column("IDHoso")]
     public string? LegalDocumentRef { get; set; }
 
+    [Column("MocTGBH")]
+    public string? WarrantyDueMarker { get; set; }
+
+    [Column("MocTGHieuchuan")]
+    public string? CalibrationDueMarker { get; set; }
+
+    [Column("MocTGKiemdinh")]
+    public string? InspectionDueMarker { get; set; }
+
+    [Column("Thoigianduavaosd")]
+    public string? PutIntoUseMarker { get; set; }
+
+    [Column("Tenviettat")]
+    public string? SpecializedName { get; set; }
+
     public virtual Organization? Organization { get; set; }
     public virtual DeviceType? DeviceType { get; set; }
     public virtual DeviceStatus? DeviceStatus { get; set; }

@@ -60,6 +60,20 @@ public class MasterDataController : ControllerBase
         return Ok(ApiResponse<List<MasterItemDto>>.CreateSuccess(data));
     }
 
+    [HttpGet("personnel-types")]
+    public async Task<IActionResult> GetPersonnelTypes()
+    {
+        var data = await _masterDataService.GetPersonnelTypesAsync();
+        return Ok(ApiResponse<List<MasterItemDto>>.CreateSuccess(data));
+    }
+
+    [HttpGet("document-types")]
+    public async Task<IActionResult> GetDocumentTypes()
+    {
+        var data = await _masterDataService.GetDocumentTypesAsync();
+        return Ok(ApiResponse<List<MasterItemDto>>.CreateSuccess(data));
+    }
+
     [HttpGet("bidding-packages")]
     public async Task<IActionResult> GetBiddingPackages()
     {

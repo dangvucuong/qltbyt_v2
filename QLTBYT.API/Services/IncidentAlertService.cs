@@ -31,16 +31,16 @@ public class IncidentAlertService : IIncidentAlertService
 
     public async Task SendIncidentCreatedAsync(int deviceId, string deviceCode, string content)
     {
-        var subject = $"[QLTBYT] Su co thiet bi {deviceCode}";
-        var body = $"Thiet bi: {deviceCode} (ID={deviceId})\nNoi dung: {content}\nThoi gian: {DateTime.Now:dd/MM/yyyy HH:mm}";
-        await NotifyStaffAsync(subject, body, "Yeu cau thiet bi moi", content);
+        var subject = $"[QLTBYT] Sự cố thiết bị {deviceCode}";
+        var body = $"Thiết bị: {deviceCode} (ID={deviceId})\nNội dung: {content}\nThời gian: {DateTime.Now:dd/MM/yyyy HH:mm}";
+        await NotifyStaffAsync(subject, body, "Yêu cầu thiết bị mới", content);
     }
 
     public async Task SendIncidentResolvedAsync(int eventId, string deviceCode)
     {
-        var subject = $"[QLTBYT] Da xu ly su co {deviceCode}";
-        var body = $"Su co ID={eventId}, thiet bi {deviceCode} da duoc xu ly.\nThoi gian: {DateTime.Now:dd/MM/yyyy HH:mm}";
-        await NotifyStaffAsync(subject, body, "Su co da xu ly", $"Thiet bi {deviceCode}");
+        var subject = $"[QLTBYT] Đã xử lý sự cố {deviceCode}";
+        var body = $"Sự cố ID={eventId}, thiết bị {deviceCode} đã được xử lý.\nThời gian: {DateTime.Now:dd/MM/yyyy HH:mm}";
+        await NotifyStaffAsync(subject, body, "Sự cố đã xử lý", $"Thiết bị {deviceCode}");
     }
 
     private async Task NotifyStaffAsync(string emailSubject, string emailBody, string pushTitle, string pushBody)

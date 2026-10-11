@@ -10,6 +10,7 @@ import { DeviceFormPage } from '@/pages/devices/DeviceFormPage';
 import { EventListPage } from '@/pages/events/EventListPage';
 import { UsersPage } from '@/pages/admin/UsersPage';
 import { MasterDataPage } from '@/pages/admin/MasterDataPage';
+import { SystemLogsPage } from '@/pages/admin/SystemLogsPage';
 import { PersonnelPage } from '@/pages/personnel/PersonnelPage';
 import { UsageLogsPage } from '@/pages/usage/UsageLogsPage';
 import { OrganizationsPage } from '@/pages/org/OrganizationsPage';
@@ -57,6 +58,7 @@ export function App() {
               <Route path="/users" element={<UsersPage />} />
               <Route path="/organizations" element={<OrganizationsPage />} />
               <Route path="/admin/master" element={<MasterDataPage />} />
+              <Route path="/admin/system-logs" element={<SystemLogsPage />} />
             </Route>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
           </Route>

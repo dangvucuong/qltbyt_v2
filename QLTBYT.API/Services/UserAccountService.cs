@@ -46,11 +46,11 @@ public class UserAccountService : IUserAccountService
     public async Task<UserListDto> CreateUserAsync(CreateUserRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Username) || string.IsNullOrWhiteSpace(request.Password))
-            throw new InvalidOperationException("Ten dang nhap va mat khau la bat buoc.");
+            throw new InvalidOperationException("Tên đăng nhập và mật khẩu là bắt buộc.");
 
         var exists = await _context.UserAccounts.AnyAsync(u => u.Username == request.Username.Trim());
         if (exists)
-            throw new InvalidOperationException("Ten dang nhap da ton tai.");
+            throw new InvalidOperationException("Tên đăng nhập đã tồn tại.");
 
         var entity = new UserAccount
         {
@@ -65,7 +65,7 @@ public class UserAccountService : IUserAccountService
         };
         _context.UserAccounts.Add(entity);
         await _context.SaveChangesAsync();
-        await _audit.WriteAsync(_currentUser.UserId, $"Tao tai khoan {entity.Username}");
+        await _audit.WriteAsync(_currentUser.UserId, $"Tạo tài khoản {entity.Username}");
         return Map(entity);
     }
 
@@ -92,14 +92,14 @@ public class UserAccountService : IUserAccountService
             entity.Password = PasswordHasher.Hash(request.NewPassword);
 
         await _context.SaveChangesAsync();
-        await _audit.WriteAsync(_currentUser.UserId, $"Cap nhat tai khoan ID={id}");
+        await _audit.WriteAsync(_currentUser.UserId, $"Cập nhật tài khoản ID={id}");
         return Map(entity);
     }
 
     public async Task<bool> DeleteUserAsync(int id)
     {
         if (_currentUser.UserId == id)
-            throw new InvalidOperationException("Khong the xoa tai khoan dang dang nhap.");
+            throw new InvalidOperationException("Không thể xóa tài khoản đang đăng nhập.");
 
         var entity = await _context.UserAccounts.FirstOrDefaultAsync(u => u.Id == id);
         if (entity is null)
@@ -107,7 +107,7 @@ public class UserAccountService : IUserAccountService
 
         _context.UserAccounts.Remove(entity);
         await _context.SaveChangesAsync();
-        await _audit.WriteAsync(_currentUser.UserId, $"Xoa tai khoan ID={id}");
+        await _audit.WriteAsync(_currentUser.UserId, $"Xóa tài khoản ID={id}");
         return true;
     }
 
