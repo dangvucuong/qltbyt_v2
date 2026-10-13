@@ -20,7 +20,7 @@ public class BiddingController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize(Policy = "AllUsers")]
+    [Authorize(Policy = "BiddingAccess")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<BiddingPackageDto>>>> GetAll()
     {
         var list = await _biddingService.GetAllAsync();
@@ -28,7 +28,7 @@ public class BiddingController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    [Authorize(Policy = "AllUsers")]
+    [Authorize(Policy = "BiddingAccess")]
     public async Task<ActionResult<ApiResponse<BiddingPackageDto>>> GetById(int id)
     {
         var item = await _biddingService.GetByIdAsync(id);
@@ -73,7 +73,7 @@ public class BiddingController : ControllerBase
     }
 
     [HttpGet("{id:int}/devices")]
-    [Authorize(Policy = "TechnicianAndAbove")]
+    [Authorize(Policy = "BiddingAccess")]
     public async Task<ActionResult<ApiResponse<IReadOnlyList<DeviceListDto>>>> GetDevices(int id)
     {
         var list = await _biddingService.GetDevicesAsync(id);

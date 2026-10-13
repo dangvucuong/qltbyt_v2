@@ -2,6 +2,7 @@ import {
   Button,
   Card,
   Descriptions,
+  Dropdown,
   Empty,
   Form,
   Input,
@@ -22,6 +23,7 @@ import {
   WarningOutlined,
   PrinterOutlined,
   PlusOutlined,
+  DownOutlined,
 } from '@ant-design/icons';
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
@@ -39,6 +41,18 @@ import { DeviceUsageLogsPanel } from '@/components/DeviceUsageLogsPanel';
 import { useAuthStore } from '@/store/authStore';
 import { openPrintHtml } from '@/utils/openPrintHtml';
 import { apiUrl } from '@/utils/apiBase';
+
+type PrintKind = 'repair' | 'handover' | 'acceptance';
+
+async function printDeviceSlip(deviceId: number, kind: PrintKind) {
+  const path =
+    kind === 'repair'
+      ? `/api/reports/devices/${deviceId}/print/repair`
+      : kind === 'handover'
+        ? `/api/reports/devices/${deviceId}/print/handover`
+        : `/api/reports/devices/${deviceId}/print/acceptance`;
+  await openPrintHtml(path);
+}
 
 function fileUrl(path?: string) {
   if (!path) return '#';
@@ -354,32 +368,38 @@ export function DeviceDetailPage() {
               </Button>
             )}
             {canMaintain && (
-              <>
-                <Button
-                  icon={<PrinterOutlined />}
-                  onClick={async () => {
+              <Dropdown
+                menu={{
+                  items: [
+                    {
+                      key: 'repair',
+                      label: 'Phiếu ghi nhận tình trạng (PSC)',
+                      icon: <PrinterOutlined />,
+                    },
+                    {
+                      key: 'handover',
+                      label: 'Biên bản bàn giao (BCKT)',
+                      icon: <PrinterOutlined />,
+                    },
+                    {
+                      key: 'acceptance',
+                      label: 'Phiếu ghi nhận xử lý / nghiệm thu (PNT)',
+                      icon: <PrinterOutlined />,
+                    },
+                  ],
+                  onClick: async ({ key }) => {
                     try {
-                      await openPrintHtml(`/api/reports/devices/${deviceId}/print/repair`);
+                      await printDeviceSlip(deviceId, key as PrintKind);
                     } catch {
-                      message.error('Không mở được phiếu sửa chữa');
+                      message.error('Không mở được phiếu in');
                     }
-                  }}
-                >
-                  In phiếu sửa chữa
+                  },
+                }}
+              >
+                <Button icon={<PrinterOutlined />}>
+                  In phiếu <DownOutlined />
                 </Button>
-                <Button
-                  icon={<PrinterOutlined />}
-                  onClick={async () => {
-                    try {
-                      await openPrintHtml(`/api/reports/devices/${deviceId}/print/inspection`);
-                    } catch {
-                      message.error('Không mở được phiếu kiểm định');
-                    }
-                  }}
-                >
-                  In phiếu kiểm định
-                </Button>
-              </>
+              </Dropdown>
             )}
             <Button icon={<WarningOutlined />} onClick={() => setReportOpen(true)}>
               Báo sự cố

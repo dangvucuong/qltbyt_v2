@@ -22,6 +22,13 @@ import {
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { NotificationBell } from '@/components/NotificationBell';
+import {
+  canAccessAdmin,
+  canAccessBidding,
+  canAccessOperations,
+  canAccessReports,
+  canAccessWarehouse,
+} from '@/utils/permissions';
 
 const { Header, Sider, Content } = Layout;
 
@@ -30,7 +37,11 @@ export function MainLayout() {
   const navigate = useNavigate();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
-  const role = user?.role;
+  const showReports = canAccessReports(user);
+  const showBidding = canAccessBidding(user);
+  const showWarehouse = canAccessWarehouse(user);
+  const showOperations = canAccessOperations(user);
+  const showAdmin = canAccessAdmin(user);
 
   const selected = location.pathname.startsWith('/legal-documents')
     ? '/legal-documents'
@@ -116,27 +127,30 @@ export function MainLayout() {
               icon: <BookOutlined />,
               label: <Link to="/usage-logs">Nhật ký sử dụng</Link>,
             },
-            ...(role === 'Admin' || role === 'Technician'
+            ...(showReports
               ? [
                   {
                     key: '/reports',
                     icon: <FileTextOutlined />,
-                    label: <Link to="/reports">Báo cáo</Link>,
+                    label: <Link to="/reports">Báo cáo / số liệu</Link>,
                   },
+                ]
+              : []),
+            ...(showBidding
+              ? [
                   {
                     key: '/bidding',
                     icon: <ProfileOutlined />,
                     label: <Link to="/bidding">Gói thầu</Link>,
                   },
+                ]
+              : []),
+            ...(showOperations
+              ? [
                   {
                     key: '/legal-documents',
                     icon: <SolutionOutlined />,
                     label: <Link to="/legal-documents">Hồ sơ pháp lý</Link>,
-                  },
-                  {
-                    key: '/warehouse',
-                    icon: <ShopOutlined />,
-                    label: <Link to="/warehouse">Kho TVT</Link>,
                   },
                   {
                     key: '/sign-document',
@@ -150,7 +164,16 @@ export function MainLayout() {
                   },
                 ]
               : []),
-            ...(role === 'Admin'
+            ...(showWarehouse
+              ? [
+                  {
+                    key: '/warehouse',
+                    icon: <ShopOutlined />,
+                    label: <Link to="/warehouse">Kho TVT</Link>,
+                  },
+                ]
+              : []),
+            ...(showAdmin
               ? [
                   {
                     key: '/organizations',

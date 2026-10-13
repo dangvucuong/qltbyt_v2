@@ -8,7 +8,7 @@ namespace QLTBYT.API.Controllers;
 
 [ApiController]
 [Route("api/warehouse")]
-[Authorize(Policy = "TechnicianAndAbove")]
+[Authorize(Policy = "WarehouseAccess")]
 public class WarehouseController : ControllerBase
 {
     private readonly IWarehouseService _warehouse;

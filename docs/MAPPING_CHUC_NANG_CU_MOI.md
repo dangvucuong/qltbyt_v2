@@ -45,7 +45,14 @@ Tài liệu này giúp đối chiếu **mỗi chức năng trên giao diện d�
 | `/login` → `LoginPage` | `login.aspx` |
 | API: `POST /api/auth/login` | Kiểm tra bảng `Taikhoan`, tạo Session |
 
-**Giải thích:** Cũ dùng Session WebForms. Mới trả **JWT Bearer**; frontend lưu token (Zustand) và gửi kèm mọi request. Phân quyền theo `LoaiTK` → role `Admin` / `Technician` / `User`.
+**Giải thích:** Cũ dùng Session WebForms + `localStorage.loaitk`. Mới trả **JWT Bearer** (claim `role` + `LoaiTK`).
+
+| LoaiTK (cũ) | Tên (taikhoan.aspx) | JWT role | Menu chính |
+|---|---|---|---|
+| 0 | Ban lãnh đạo | Admin | Đầy đủ (kể cả tài khoản, gói thầu, báo cáo, kiểm kê, kho) |
+| 1 | Tổ kho, thiết bị | Technician | Gói thầu, báo cáo, kiểm kê, nhân sự/hồ sơ — không quản trị TK |
+| 2 | Kỹ sư khu vực | User | Báo cáo/số liệu + kiểm kê (không gói thầu, không kho) |
+| 3 | Nhân viên mạng lưới | User | Kiểm kê (+ kho TVT như cũ); **không** số liệu tổng hợp `/reports` |
 
 ### 2.2. Quên / đặt lại mật khẩu
 
@@ -144,7 +151,10 @@ Tài liệu này giúp đối chiếu **mỗi chức năng trên giao diện d�
 | Hồ sơ pháp lý gắn TB | `hoso.aspx` / `thongtinhs.aspx` | Tab/section legal trên chi tiết + `/legal-documents` |
 | Vật tư / phụ kiện TB | `vattu.aspx` | Supplies trên chi tiết (`/api/devices/:id/supplies`) |
 | Nhật ký sử dụng theo TB | `SudungTB.aspx` / panel liên quan | Panel `DeviceUsageLogsPanel` trên chi tiết |
-| In phiếu sửa chữa / kiểm định | In từ view/báo cáo cũ | `GET /api/reports/devices/:id/print/...` |
+| In phiếu DevExpress (`viewrp.aspx`) | Menu trên `view.aspx` → `viewrp.aspx?type=0|1|2` | Dropdown **In phiếu** trên chi tiết TB → HTML bám mẫu `.repx` (PDF mẫu trong `docs/report-samples/`) |
+| → type=0 `rpPhieusuachua` (PSC) | Phiếu ghi nhận tình trạng TB | `GET /api/reports/devices/:id/print/repair` |
+| → type=1 `prBCKT` (BCKT) | Biên bản bàn giao | `GET /api/reports/devices/:id/print/handover` (alias `/print/inspection`) |
+| → type=2 `rpPhieuNT` (PNT) | Phiếu ghi nhận xử lý / nghiệm thu | `GET /api/reports/devices/:id/print/acceptance` |
 | Import Excel hàng loạt | `import.aspx`, `importdata.aspx` | `POST /api/devices/import` (từ UI thiết bị/báo cáo tùy phiên bản) |
 
 ### 4.5. Import thiết bị

@@ -89,6 +89,33 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminOnly", p => p.RequireRole("Admin"));
     options.AddPolicy("TechnicianAndAbove", p => p.RequireRole("Admin", "Technician"));
     options.AddPolicy("AllUsers", p => p.RequireRole("Admin", "Technician", "User"));
+
+    // Legacy baocao.aspx: LoaiTK 0,1,2 được vào; LoaiTK 3 bị chặn
+    options.AddPolicy("ReportsAccess", p => p.RequireAssertion(ctx =>
+    {
+        if (ctx.User.IsInRole("Admin") || ctx.User.IsInRole("Technician"))
+            return true;
+        var loai = ctx.User.FindFirst("LoaiTK")?.Value;
+        return loai is "0" or "1" or "2";
+    }));
+
+    // Legacy goithau.aspx: chỉ LoaiTK 0,1
+    options.AddPolicy("BiddingAccess", p => p.RequireAssertion(ctx =>
+    {
+        if (ctx.User.IsInRole("Admin") || ctx.User.IsInRole("Technician"))
+            return true;
+        var loai = ctx.User.FindFirst("LoaiTK")?.Value;
+        return loai is "0" or "1";
+    }));
+
+    // Legacy Nhaphanghoa/baocaokho: LoaiTK 0 hoặc 3
+    options.AddPolicy("WarehouseAccess", p => p.RequireAssertion(ctx =>
+    {
+        if (ctx.User.IsInRole("Admin"))
+            return true;
+        var loai = ctx.User.FindFirst("LoaiTK")?.Value;
+        return loai is "0" or "3";
+    }));
 });
 
 builder.Services.AddControllers()

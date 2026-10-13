@@ -18,5 +18,9 @@
   },
   "FirebaseSettings": {
     "Enabled": false
+  },
+  "PrintSettings": {
+    "HospitalName": "BỆNH VIỆN ĐA KHOA ABC",
+    "DepartmentName": "PHÒNG VẬT TƯ, TRANG THIẾT BỊ Y TẾ"
   }
 }

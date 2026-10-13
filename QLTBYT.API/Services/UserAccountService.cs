@@ -61,7 +61,7 @@ public class UserAccountService : IUserAccountService
             Email = request.Email?.Trim(),
             AccountType = request.AccountType,
             OrganizationIds = request.OrganizationIds?.Trim(),
-            Admin = request.AccountType == 1 ? 1 : 0
+            Admin = request.AccountType == 0 ? 1 : 0
         };
         _context.UserAccounts.Add(entity);
         await _context.SaveChangesAsync();
@@ -84,7 +84,7 @@ public class UserAccountService : IUserAccountService
         if (request.AccountType.HasValue)
         {
             entity.AccountType = request.AccountType.Value;
-            entity.Admin = request.AccountType.Value == 1 ? 1 : 0;
+            entity.Admin = request.AccountType.Value == 0 ? 1 : 0;
         }
         if (request.OrganizationIds is not null)
             entity.OrganizationIds = request.OrganizationIds.Trim();

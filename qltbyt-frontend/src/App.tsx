@@ -45,16 +45,32 @@ export function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
             <Route path="/scan-qr" element={<QrScanPage />} />
+            {/* baocaoTS — mọi role (kể cả User / LoaiTK 3) */}
             <Route path="/asset-inventory" element={<KiemkeAssetPage />} />
-            <Route element={<RoleRoute roles={['Admin', 'Technician']} />}>
+
+            {/* baocao — LoaiTK 0,1,2 */}
+            <Route element={<RoleRoute access="reports" />}>
               <Route path="/reports" element={<ReportsPage />} />
+            </Route>
+
+            {/* goithau — LoaiTK 0,1 */}
+            <Route element={<RoleRoute access="bidding" />}>
               <Route path="/bidding" element={<BiddingPage />} />
+            </Route>
+
+            {/* Kho — LoaiTK 0 hoặc 3 */}
+            <Route element={<RoleRoute access="warehouse" />}>
+              <Route path="/warehouse" element={<WarehousePage />} />
+            </Route>
+
+            {/* Nhân sự / hồ sơ / ký số — Ban lãnh đạo + Tổ kho */}
+            <Route element={<RoleRoute access="operations" />}>
               <Route path="/personnel" element={<PersonnelPage />} />
               <Route path="/legal-documents" element={<LegalDocumentsPage />} />
-              <Route path="/warehouse" element={<WarehousePage />} />
               <Route path="/sign-document" element={<SignDocumentPage />} />
             </Route>
-            <Route element={<RoleRoute roles={['Admin']} />}>
+
+            <Route element={<RoleRoute access="admin" />}>
               <Route path="/users" element={<UsersPage />} />
               <Route path="/organizations" element={<OrganizationsPage />} />
               <Route path="/admin/master" element={<MasterDataPage />} />

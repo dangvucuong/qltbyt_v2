@@ -9,7 +9,7 @@ namespace QLTBYT.API.Controllers;
 
 [ApiController]
 [Route("api/reports")]
-[Authorize(Policy = "TechnicianAndAbove")]
+[Authorize(Policy = "ReportsAccess")]
 public class ReportsController : ControllerBase
 {
     private readonly IReportService _reportService;
@@ -72,6 +72,7 @@ public class ReportsController : ControllerBase
         return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Bao-cao-kho-TVT.xlsx");
     }
 
+    /// <summary>viewrp.aspx?type=0 — Phiếu ghi nhận tình trạng thiết bị (PSC / rpPhieusuachua)</summary>
     [HttpGet("devices/{id:int}/print/repair")]
     public async Task<IActionResult> PrintRepair(int id)
     {
@@ -80,10 +81,24 @@ public class ReportsController : ControllerBase
         return Content(html, "text/html; charset=utf-8");
     }
 
-    [HttpGet("devices/{id:int}/print/inspection")]
-    public async Task<IActionResult> PrintInspection(int id)
+    /// <summary>viewrp.aspx?type=1 — Biên bản bàn giao (BCKT / prBCKT)</summary>
+    [HttpGet("devices/{id:int}/print/handover")]
+    public async Task<IActionResult> PrintHandover(int id)
     {
-        var html = await _reportService.GetDeviceInspectionPrintHtmlAsync(id);
+        var html = await _reportService.GetDeviceHandoverPrintHtmlAsync(id);
+        if (html is null) return NotFound();
+        return Content(html, "text/html; charset=utf-8");
+    }
+
+    /// <summary>Alias cũ — cùng biên bản bàn giao BCKT.</summary>
+    [HttpGet("devices/{id:int}/print/inspection")]
+    public async Task<IActionResult> PrintInspection(int id) => await PrintHandover(id);
+
+    /// <summary>viewrp.aspx?type=2 — Phiếu ghi nhận xử lý / nghiệm thu (PNT / rpPhieuNT)</summary>
+    [HttpGet("devices/{id:int}/print/acceptance")]
+    public async Task<IActionResult> PrintAcceptance(int id)
+    {
+        var html = await _reportService.GetDeviceAcceptancePrintHtmlAsync(id);
         if (html is null) return NotFound();
         return Content(html, "text/html; charset=utf-8");
     }

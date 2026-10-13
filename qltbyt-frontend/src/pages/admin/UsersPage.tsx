@@ -7,26 +7,12 @@ import type { ApiResponse } from '@/types/api';
 import type { CreateUserPayload, UpdateUserPayload, UserAccountItem } from '@/types/phase2';
 import { PageHeader } from '@/components/PageHeader';
 import { LoadingCenter } from '@/components/LoadingCenter';
-
-const ACCOUNT_TYPES = [
-  { value: 1, label: 'Quản trị (Admin)' },
-  { value: 2, label: 'Kỹ thuật' },
-  { value: 3, label: 'Nhân viên khoa' },
-];
-
-/** Legacy LoaiTK=0 cũng là Admin; chuẩn hóa để khớp option Select. */
-function normalizeAccountType(value?: number | string | null): number | undefined {
-  if (value === undefined || value === null || value === '') return undefined;
-  const n = Number(value);
-  if (Number.isNaN(n)) return undefined;
-  if (n <= 1) return 1;
-  if (n === 2) return 2;
-  return 3;
-}
+import { ACCOUNT_TYPE_OPTIONS } from '@/utils/permissions';
 
 function accountTypeLabel(value?: number | string | null): string {
-  const n = normalizeAccountType(value);
-  return ACCOUNT_TYPES.find((t) => t.value === n)?.label ?? String(value ?? '');
+  if (value === undefined || value === null || value === '') return '—';
+  const n = Number(value);
+  return ACCOUNT_TYPE_OPTIONS.find((t) => t.value === n)?.label ?? String(value);
 }
 
 export function UsersPage() {
@@ -119,7 +105,10 @@ export function UsersPage() {
                       setEditing(r);
                       form.setFieldsValue({
                         ...r,
-                        accountType: normalizeAccountType(r.accountType),
+                        accountType:
+                          r.accountType === undefined || r.accountType === null
+                            ? undefined
+                            : Number(r.accountType),
                       });
                       setOpen(true);
                     }}
@@ -164,7 +153,10 @@ export function UsersPage() {
             <Input />
           </Form.Item>
           <Form.Item name="accountType" label="Loại tài khoản" rules={[{ required: true }]}>
-            <Select options={ACCOUNT_TYPES} optionFilterProp="label" />
+            <Select
+              options={ACCOUNT_TYPE_OPTIONS.map((t) => ({ value: t.value, label: t.label }))}
+              optionFilterProp="label"
+            />
           </Form.Item>
           <Form.Item name="organizationIds" label="Mã đơn vị (MaDV)">
             <Input placeholder="VD: 1 hoặc 1;2" />

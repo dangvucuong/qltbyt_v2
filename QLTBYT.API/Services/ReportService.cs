@@ -1,5 +1,6 @@
 using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using QLTBYT.API.Data;
 using QLTBYT.API.Helpers;
 using QLTBYT.API.Models.Common;
@@ -17,7 +18,13 @@ public interface IReportService
     Task<byte[]> ExportExpiringInspectionExcelAsync(int withinDays = 90);
     Task<byte[]> ExportAssetsExcelAsync();
     Task<byte[]> ExportEventsExcelAsync();
+    /// <summary>viewrp type=0 — phiếu ghi nhận tình trạng (PSC)</summary>
     Task<string?> GetDeviceRepairPrintHtmlAsync(int deviceId);
+    /// <summary>viewrp type=1 — biên bản bàn giao (BCKT)</summary>
+    Task<string?> GetDeviceHandoverPrintHtmlAsync(int deviceId);
+    /// <summary>viewrp type=2 — phiếu ghi nhận xử lý / nghiệm thu (PNT)</summary>
+    Task<string?> GetDeviceAcceptancePrintHtmlAsync(int deviceId);
+    /// <summary>Alias cũ của biên bản bàn giao (BCKT).</summary>
     Task<string?> GetDeviceInspectionPrintHtmlAsync(int deviceId);
     Task<PagedResult<BaocaoAssetRowDto>> GetBaocaoAssetStatisticsAsync(BaocaoAssetQueryParams query);
     Task<PagedResult<BaocaoOperationalRowDto>> GetBaocaoOperationalStatisticsAsync(BaocaoOperationalQueryParams query);
@@ -32,11 +39,13 @@ public partial class ReportService : IReportService
 {
     private readonly AppDbContext _context;
     private readonly ICurrentUserService _currentUser;
+    private readonly IConfiguration _configuration;
 
-    public ReportService(AppDbContext context, ICurrentUserService currentUser)
+    public ReportService(AppDbContext context, ICurrentUserService currentUser, IConfiguration configuration)
     {
         _context = context;
         _currentUser = currentUser;
+        _configuration = configuration;
     }
 
     public async Task<DeviceReportSummaryDto> GetDeviceReportSummaryAsync(int expiringWithinDays = 30)
@@ -276,16 +285,93 @@ public partial class ReportService : IReportService
 
     public async Task<string?> GetDeviceRepairPrintHtmlAsync(int deviceId)
     {
-        var d = await ScopedDevices().Include(x => x.Organization).FirstOrDefaultAsync(x => x.Id == deviceId);
-        if (d is null) return null;
-        return DevicePrintTemplates.BuildRepairSlip(d, d.Organization?.Name);
+        var model = await BuildPrintModelAsync(deviceId);
+        if (model is null) return null;
+
+        // Điền section 2 từ sự cố mở gần nhất (nếu có) — gần với Session("rp") cũ
+        var openEvent = await _context.DeviceEvents.AsNoTracking()
+            .Where(e => e.DeviceId == deviceId && e.StatusId != 2)
+            .OrderByDescending(e => e.EventDateTime)
+            .ThenByDescending(e => e.Id)
+            .FirstOrDefaultAsync();
+        if (openEvent is not null)
+        {
+            model.RequestType = DeviceEventLabels.GetTypeName(openEvent.TypeId);
+            model.RequestContent = openEvent.Content;
+            model.RequestDateTime = openEvent.EventDateTime?.ToString("dd/MM/yyyy HH:mm");
+            model.RequestAccount = openEvent.AccountUsername;
+        }
+
+        return DevicePrintTemplates.BuildRepairSlip(model);
     }
 
-    public async Task<string?> GetDeviceInspectionPrintHtmlAsync(int deviceId)
+    public async Task<string?> GetDeviceHandoverPrintHtmlAsync(int deviceId)
     {
-        var d = await ScopedDevices().Include(x => x.Organization).FirstOrDefaultAsync(x => x.Id == deviceId);
+        var model = await BuildPrintModelAsync(deviceId);
+        return model is null ? null : DevicePrintTemplates.BuildHandoverMinutes(model);
+    }
+
+    public async Task<string?> GetDeviceAcceptancePrintHtmlAsync(int deviceId)
+    {
+        var model = await BuildPrintModelAsync(deviceId);
+        if (model is null) return null;
+
+        var resolved = await _context.DeviceEvents.AsNoTracking()
+            .Where(e => e.DeviceId == deviceId && e.StatusId == 2)
+            .OrderByDescending(e => e.EventDateTime)
+            .ThenByDescending(e => e.Id)
+            .FirstOrDefaultAsync();
+        if (resolved is not null)
+        {
+            model.ProcessType = "Đã xử lý";
+            model.ProcessContent = resolved.Content;
+            model.ProcessDateTime = resolved.EventDateTime?.ToString("dd/MM/yyyy HH:mm");
+            model.ProcessAccount = resolved.AccountUsername;
+        }
+        else
+        {
+            model.ProcessType = "Đã xử lý";
+        }
+
+        return DevicePrintTemplates.BuildAcceptanceSlip(model);
+    }
+
+    public Task<string?> GetDeviceInspectionPrintHtmlAsync(int deviceId) =>
+        GetDeviceHandoverPrintHtmlAsync(deviceId);
+
+    private async Task<DevicePrintTemplates.PrintModel?> BuildPrintModelAsync(int deviceId)
+    {
+        var d = await ScopedDevices()
+            .Include(x => x.Organization)
+            .Include(x => x.DeviceStatus)
+            .FirstOrDefaultAsync(x => x.Id == deviceId);
         if (d is null) return null;
-        return DevicePrintTemplates.BuildInspectionChecklist(d, d.Organization?.Name);
+
+        string? countryName = d.CountryOfOrigin;
+        if (!string.IsNullOrWhiteSpace(d.CountryOfOrigin)
+            && int.TryParse(d.CountryOfOrigin.Trim(), out var countryId))
+        {
+            countryName = await _context.Countries.AsNoTracking()
+                .Where(c => c.Id == countryId)
+                .Select(c => c.Name)
+                .FirstOrDefaultAsync() ?? d.CountryOfOrigin;
+        }
+
+        return new DevicePrintTemplates.PrintModel
+        {
+            HospitalName = _configuration["PrintSettings:HospitalName"] ?? "BỆNH VIỆN ĐA KHOA ABC",
+            DepartmentName = _configuration["PrintSettings:DepartmentName"]
+                ?? "PHÒNG VẬT TƯ, TRANG THIẾT BỊ Y TẾ",
+            PrintedAt = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss"),
+            DeviceName = d.Name,
+            ModelCode = d.ModelCode,
+            Serial = d.Serial,
+            Manufacturer = d.Manufacturer,
+            CountryName = countryName,
+            PutIntoUseDate = d.PutIntoUseMarker,
+            OrganizationName = d.Organization?.Name,
+            StatusName = d.DeviceStatus?.Name
+        };
     }
 
     private static LegalDocument? ResolveLegalForAsset(Device d, List<LegalDocument> legalList)
