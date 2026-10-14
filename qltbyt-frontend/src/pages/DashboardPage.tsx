@@ -21,7 +21,7 @@ import type { ApiResponse, DashboardSummary } from '@/types/api';
 import { PageHeader } from '@/components/PageHeader';
 import { LoadingCenter } from '@/components/LoadingCenter';
 
-const CHART_COLORS = ['#0d9488', '#0284c7', '#059669', '#d97706', '#7c3aed', '#dc2626'];
+const CHART_COLORS = ['#1D7ABF', '#2698D4', '#059669', '#d97706', '#003366', '#dc2626'];
 
 export function DashboardPage() {
   const { data, isLoading } = useQuery({
@@ -52,7 +52,7 @@ export function DashboardPage() {
             <Statistic
               title="Tổng số thiết bị"
               value={summary?.totalDevices ?? 0}
-              prefix={<MedicineBoxOutlined style={{ color: '#0d9488' }} />}
+              prefix={<MedicineBoxOutlined style={{ color: '#1D7ABF' }} />}
             />
           </Card>
         </Col>
@@ -126,7 +126,7 @@ export function DashboardPage() {
                 />
                 <YAxis allowDecimals={false} width={44} />
                 <Tooltip />
-                <Bar dataKey="value" fill="#0d9488" radius={[6, 6, 0, 0]} name="Số lượng" />
+                <Bar dataKey="value" fill="#1D7ABF" radius={[6, 6, 0, 0]} name="Số lượng" />
               </BarChart>
             </ResponsiveContainer>
           </Card>
@@ -162,7 +162,7 @@ export function DashboardPage() {
                   }
                 />
                 <Legend />
-                <Bar yAxisId="count" dataKey="deviceCount" name="Số thiết bị" fill="#0d9488" radius={[4, 4, 0, 0]} />
+                <Bar yAxisId="count" dataKey="deviceCount" name="Số thiết bị" fill="#1D7ABF" radius={[4, 4, 0, 0]} />
                 <Bar yAxisId="value" dataKey="totalAssetValue" name="Giá trị" fill="#0284c7" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>

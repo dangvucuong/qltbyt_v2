@@ -96,7 +96,7 @@ public class BiddingService : IBiddingService
             .Select(d => new DeviceListDto
             {
                 Id = d.Id,
-                DeviceCode = d.DeviceCode,
+                DeviceCode = d.DeviceCode ?? d.Id.ToString(),
                 Name = d.Name
             })
             .ToListAsync();

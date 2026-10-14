@@ -1,22 +1,23 @@
 # QLTBYT_NEW — Quản lý thiết bị y tế
 
-- **Backend:** QLTBYT.API (.NET 7) — http://localhost:5149
-- **Frontend:** qltbyt-frontend (React 18 + Vite + Ant Design) — http://localhost:5173
-- **Tests:** QLTBYT.API.Tests (dotnet test)
-- **Database:** db_QLTBYT_NEW (script dbqltbyt.sql)
+- **Backend:** QLTBYT.API (.NET 7)
+- **Frontend:** qltbyt-frontend (React 18 + Vite + Ant Design)
+- **Tests:** QLTBYT.API.Tests
+- **Database:** SQL Server — schema legacy `db_QLTBYT`
+
+## Tài liệu
+
+| Tài liệu | File |
+|----------|------|
+| Hướng dẫn sử dụng | [docs/HUONG_DAN_SU_DUNG.md](docs/HUONG_DAN_SU_DUNG.md) |
+| Tài liệu kỹ thuật | [docs/TAI_LIEU_KY_THUAT.md](docs/TAI_LIEU_KY_THUAT.md) |
+| Hướng dẫn deploy | [docs/HUONG_DAN_DEPLOY.md](docs/HUONG_DAN_DEPLOY.md) |
+
+Mục lục nhanh: [docs/README.md](docs/README.md)
 
 ## Chạy nhanh (Development)
 
-1. Cấu hình DB trong QLTBYT.API/appsettings.Development.json
-2. API: cd QLTBYT.API → dotnet run
-3. UI: cd qltbyt-frontend → 
-pm install → 
-pm run dev
-4. Đăng nhập demo: dmin / kythuat / user — mật khẩu Sample@123
-
-## Test & nghiệm thu (trước Phase 3)
-
-**Tài liệu chính:** [docs/HUONG_DAN_TEST_PHASE1_PHASE2.md](docs/HUONG_DAN_TEST_PHASE1_PHASE2.md)
-
-- Checklist rút gọn: [docs/PHASE1_UAT.md](docs/PHASE1_UAT.md), [docs/PHASE2_UAT.md](docs/PHASE2_UAT.md)
-- Dữ liệu mẫu: [docs/SAMPLE_DATA.md](docs/SAMPLE_DATA.md)
+1. Cấu hình DB trong `QLTBYT.API/appsettings.Development.json` (không commit)
+2. API: `cd QLTBYT.API` → `dotnet run` → http://localhost:5149
+3. UI: `cd qltbyt-frontend` → `npm install` → `npm run dev` → http://localhost:5173
+4. Demo (nếu seed): `admin` / `kythuat` / `user` — mật khẩu `Sample@123`

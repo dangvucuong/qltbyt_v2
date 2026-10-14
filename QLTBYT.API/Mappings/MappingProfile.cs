@@ -9,11 +9,15 @@ public class MappingProfile : Profile
     public MappingProfile()
     {
         CreateMap<Device, DeviceListDto>()
+            .ForMember(d => d.DeviceCode, o => o.MapFrom(s =>
+                string.IsNullOrWhiteSpace(s.DeviceCode) ? s.Id.ToString() : s.DeviceCode.Trim()))
             .ForMember(d => d.TypeName, o => o.MapFrom(s => s.DeviceType != null ? s.DeviceType.Name : null))
             .ForMember(d => d.OrganizationName, o => o.MapFrom(s => s.Organization != null ? s.Organization.Name : null))
             .ForMember(d => d.StatusName, o => o.MapFrom(s => s.DeviceStatus != null ? s.DeviceStatus.Name : null));
 
         CreateMap<Device, DeviceDetailDto>()
+            .ForMember(d => d.DeviceCode, o => o.MapFrom(s =>
+                string.IsNullOrWhiteSpace(s.DeviceCode) ? s.Id.ToString() : s.DeviceCode.Trim()))
             .ForMember(d => d.TypeName, o => o.MapFrom(s => s.DeviceType != null ? s.DeviceType.Name : null))
             .ForMember(d => d.OrganizationName, o => o.MapFrom(s => s.Organization != null ? s.Organization.Name : null))
             .ForMember(d => d.StatusName, o => o.MapFrom(s => s.DeviceStatus != null ? s.DeviceStatus.Name : null));

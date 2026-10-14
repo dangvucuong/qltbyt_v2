@@ -82,10 +82,14 @@ public partial class ReportService : IReportService
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             var term = query.Search.Trim();
+            var idTerm = int.TryParse(term, out var parsedId) ? parsedId : (int?)null;
             queryable = queryable.Where(d =>
+                (idTerm.HasValue && d.Id == idTerm.Value) ||
                 (d.Name != null && d.Name.Contains(term)) ||
                 (d.DeviceCode != null && d.DeviceCode.Contains(term)) ||
-                (d.IdentityCode != null && d.IdentityCode.Contains(term)));
+                (d.IdentityCode != null && d.IdentityCode.Contains(term)) ||
+                (d.Serial != null && d.Serial.Contains(term)) ||
+                (d.ModelCode != null && d.ModelCode.Contains(term)));
         }
         if (query.OrganizationId.HasValue) queryable = queryable.Where(d => d.OrganizationId == query.OrganizationId);
         if (query.StatusId.HasValue) queryable = queryable.Where(d => d.StatusId == query.StatusId);
@@ -100,7 +104,7 @@ public partial class ReportService : IReportService
 
         var sortRows = await queryable.Select(d => new { d.Id, d.DeviceCode }).ToListAsync();
         var pageIds = sortRows
-            .OrderBy(x => x.DeviceCode)
+            .OrderBy(x => x.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(x => x.Id)
@@ -129,7 +133,7 @@ public partial class ReportService : IReportService
         var items = rows.Select(d => new DeviceReportRowDto
         {
             Id = d.Id,
-            DeviceCode = d.DeviceCode,
+            DeviceCode = DeviceIdentityHelper.DisplayCode(d.Id, d.DeviceCode),
             IdentityCode = d.IdentityCode,
             Name = d.Name,
             TypeName = d.DeviceType?.Name,
@@ -160,12 +164,12 @@ public partial class ReportService : IReportService
             .Include(d => d.Organization)
             .Include(d => d.DeviceType)
             .Include(d => d.DeviceStatus)
-            .OrderBy(d => d.DeviceCode)
+            .OrderBy(d => d.Id)
             .ToListAsync();
 
         using var workbook = new XLWorkbook();
         var sheet = workbook.Worksheets.Add("Thiết bị");
-        sheet.Cell(1, 1).Value = "Mã TB";
+        sheet.Cell(1, 1).Value = "Mã / ID TB";
         sheet.Cell(1, 2).Value = "Tên TB";
         sheet.Cell(1, 3).Value = "Loại";
         sheet.Cell(1, 4).Value = "Đơn vị";
@@ -176,7 +180,7 @@ public partial class ReportService : IReportService
         int r = 2;
         foreach (var d in rows)
         {
-            sheet.Cell(r, 1).Value = d.DeviceCode;
+            sheet.Cell(r, 1).Value = DeviceIdentityHelper.DisplayCode(d.Id, d.DeviceCode);
             sheet.Cell(r, 2).Value = d.Name;
             sheet.Cell(r, 3).Value = d.DeviceType?.Name;
             sheet.Cell(r, 4).Value = d.Organization?.Name;
@@ -207,7 +211,7 @@ public partial class ReportService : IReportService
         int r = 2;
         foreach (var d in rows)
         {
-            sheet.Cell(r, 1).Value = d.DeviceCode;
+            sheet.Cell(r, 1).Value = DeviceIdentityHelper.DisplayCode(d.Id, d.DeviceCode);
             sheet.Cell(r, 2).Value = d.Name;
             sheet.Cell(r, 3).Value = d.InspectionExpiryDate?.ToString("dd/MM/yyyy");
             r++;
@@ -222,13 +226,13 @@ public partial class ReportService : IReportService
         var rows = await ScopedDevices()
             .Include(d => d.Organization)
             .Include(d => d.DeviceType)
-            .OrderBy(d => d.DeviceCode)
+            .OrderBy(d => d.Id)
             .ToListAsync();
         var legalList = await _context.LegalDocuments.AsNoTracking().ToListAsync();
 
         using var workbook = new XLWorkbook();
         var sheet = workbook.Worksheets.Add("Tài sản TB");
-        sheet.Cell(1, 1).Value = "Mã TB";
+        sheet.Cell(1, 1).Value = "Mã / ID TB";
         sheet.Cell(1, 2).Value = "Tên TB";
         sheet.Cell(1, 3).Value = "Loại";
         sheet.Cell(1, 4).Value = "Đơn vị";
@@ -240,7 +244,7 @@ public partial class ReportService : IReportService
         foreach (var d in rows)
         {
             var legal = ResolveLegalForAsset(d, legalList);
-            sheet.Cell(r, 1).Value = d.DeviceCode;
+            sheet.Cell(r, 1).Value = DeviceIdentityHelper.DisplayCode(d.Id, d.DeviceCode);
             sheet.Cell(r, 2).Value = d.Name;
             sheet.Cell(r, 3).Value = d.DeviceType?.Name;
             sheet.Cell(r, 4).Value = d.Organization?.Name;
@@ -381,6 +385,14 @@ public partial class ReportService : IReportService
             var linked = legalList.FirstOrDefault(l => l.Id == id);
             if (linked is not null) return linked;
         }
+
+        // ThongtinHS.MaThietbi lưu ID thiết bị (không phải MaTB).
+        var idKey = d.Id.ToString();
+        var byId = legalList.FirstOrDefault(l =>
+            l.DeviceCodes != null &&
+            (l.DeviceCodes == idKey || l.DeviceCodes.Contains(idKey)));
+        if (byId is not null) return byId;
+
         var code = d.DeviceCode?.Trim();
         if (string.IsNullOrEmpty(code)) return null;
         return legalList.FirstOrDefault(l => l.DeviceCodes != null && l.DeviceCodes.Contains(code));

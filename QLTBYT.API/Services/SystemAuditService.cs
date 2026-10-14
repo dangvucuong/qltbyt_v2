@@ -119,7 +119,9 @@ public class SystemAuditService : ISystemAuditService
                 Content = r.Content,
                 Timestamp = r.Timestamp,
                 DeviceId = r.DeviceId,
-                DeviceCode = device?.DeviceCode,
+                DeviceCode = r.DeviceId.HasValue
+                    ? Helpers.DeviceIdentityHelper.DisplayCode(r.DeviceId.Value, device?.DeviceCode)
+                    : device?.DeviceCode,
                 DeviceName = device?.Name,
             };
         }).ToList();

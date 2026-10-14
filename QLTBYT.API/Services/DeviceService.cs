@@ -49,9 +49,15 @@ public partial class DeviceService : IDeviceService
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             var term = query.Search.Trim();
+            // Nhiều TB legacy không có MaTB — UI hiển thị ID; cho phép tìm theo ID / mã định danh / serial.
+            var idTerm = int.TryParse(term, out var parsedId) ? parsedId : (int?)null;
             queryable = queryable.Where(d =>
+                (idTerm.HasValue && d.Id == idTerm.Value) ||
                 (d.Name != null && d.Name.Contains(term)) ||
-                (d.DeviceCode != null && d.DeviceCode.Contains(term)));
+                (d.DeviceCode != null && d.DeviceCode.Contains(term)) ||
+                (d.IdentityCode != null && d.IdentityCode.Contains(term)) ||
+                (d.Serial != null && d.Serial.Contains(term)) ||
+                (d.ModelCode != null && d.ModelCode.Contains(term)));
         }
 
         if (query.OrganizationId.HasValue)
@@ -152,13 +158,24 @@ public partial class DeviceService : IDeviceService
 
     public async Task<DeviceDetailDto> CreateDeviceAsync(CreateDeviceRequest request)
     {
-        var exists = await _context.Devices.AnyAsync(d => d.DeviceCode == request.DeviceCode);
-        if (exists)
+        var code = string.IsNullOrWhiteSpace(request.DeviceCode) ? null : request.DeviceCode.Trim();
+        if (code != null)
         {
-            throw new InvalidOperationException("Mã thiết bị đã tồn tại.");
+            var exists = await _context.Devices.AnyAsync(d => d.DeviceCode == code);
+            if (exists)
+                throw new InvalidOperationException("Mã thiết bị đã tồn tại.");
+        }
+
+        // Parent: ưu tiên ID thiết bị (Thietbichinh lưu ID khi MaTB null).
+        if (!string.IsNullOrWhiteSpace(request.ParentDeviceCode) &&
+            int.TryParse(request.ParentDeviceCode.Trim(), out var parentId) &&
+            parentId > 0)
+        {
+            request.ParentDeviceCode = parentId.ToString();
         }
 
         var entity = _mapper.Map<Device>(request);
+        entity.DeviceCode = code;
         _context.Devices.Add(entity);
         await _context.SaveChangesAsync();
         return await GetDeviceByIdAsync(entity.Id)
@@ -176,6 +193,12 @@ public partial class DeviceService : IDeviceService
         }
 
         _mapper.Map(request, entity);
+        if (!string.IsNullOrWhiteSpace(request.ParentDeviceCode) &&
+            int.TryParse(request.ParentDeviceCode.Trim(), out var parentId) &&
+            parentId > 0)
+        {
+            entity.ParentDeviceCode = parentId.ToString();
+        }
         entity.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return await GetDeviceByIdAsync(id);
@@ -202,18 +225,21 @@ public partial class DeviceService : IDeviceService
 
     public async Task<List<DeviceListDto>> GetChildrenAsync(int parentId)
     {
-        var parent = await GetDeviceByIdAsync(parentId);
-        if (parent is null || string.IsNullOrWhiteSpace(parent.DeviceCode))
-        {
+        var parent = await _context.Devices.AsNoTracking().FirstOrDefaultAsync(d => d.Id == parentId);
+        if (parent is null || !IsDeviceAllowed(parent))
             return new List<DeviceListDto>();
-        }
+
+        var parentIdKey = parentId.ToString();
+        var parentMaTb = string.IsNullOrWhiteSpace(parent.DeviceCode) ? null : parent.DeviceCode.Trim();
 
         var queryable = _context.Devices
             .AsNoTracking()
             .Include(d => d.Organization)
             .Include(d => d.DeviceType)
             .Include(d => d.DeviceStatus)
-            .Where(d => d.ParentDeviceCode == parent.DeviceCode);
+            .Where(d =>
+                d.ParentDeviceCode == parentIdKey ||
+                (parentMaTb != null && d.ParentDeviceCode == parentMaTb));
 
         queryable = ApplyOrganizationScope(queryable);
         var list = await queryable.OrderBy(d => d.Id).ToListAsync();

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using QLTBYT.API.Data;
+using QLTBYT.API.Helpers;
 using QLTBYT.API.Models.Domain;
 using QLTBYT.API.Models.DTOs.UsageLog;
 
@@ -28,18 +29,17 @@ public class UsageLogService : IUsageLogService
     public async Task<List<UsageLogDto>> GetLogsAsync(UsageLogQueryParams query)
     {
         var q = _context.UsageLogs.AsNoTracking().AsQueryable();
-        string? deviceFilterKey = null;
+        HashSet<string>? deviceFilterKeys = null;
 
         if (!string.IsNullOrWhiteSpace(query.DeviceCode))
         {
             var device = await FindDeviceAsync(query.DeviceCode);
             if (device is null)
-            {
                 return new List<UsageLogDto>();
-            }
 
             await EnsureDeviceScopeAsync(device);
-            deviceFilterKey = StorageKeyForDevice(device);
+            // Chuẩn: InputByDate.MaTB = ID thiết bị; vẫn đọc khóa MaTB cũ nếu có.
+            deviceFilterKeys = DeviceIdentityHelper.LookupKeys(device.Id, device.DeviceCode);
         }
 
         if (query.FromDate.HasValue)
@@ -50,10 +50,10 @@ public class UsageLogService : IUsageLogService
         // Không dùng Trim() trong LINQ-to-SQL (legacy MaTB có padding) — lọc trong memory.
         var rows = await q.OrderByDescending(l => l.InputDate).Take(2000).ToListAsync();
 
-        if (deviceFilterKey != null)
+        if (deviceFilterKeys != null)
         {
             rows = rows
-                .Where(l => l.DeviceCode != null && l.DeviceCode.Trim() == deviceFilterKey)
+                .Where(l => l.DeviceCode != null && deviceFilterKeys.Contains(l.DeviceCode.Trim()))
                 .Take(200)
                 .ToList();
         }
@@ -82,14 +82,16 @@ public class UsageLogService : IUsageLogService
 
         await EnsureDeviceScopeAsync(device);
 
-        var storageKey = StorageKeyForDevice(device);
+        // Luôn lưu ID thiết bị vào InputByDate.MaTB (thay MaTB string).
+        var storageKey = DeviceIdentityHelper.StorageKey(device.Id);
+        var lookupKeys = DeviceIdentityHelper.LookupKeys(device.Id, device.DeviceCode);
         var day = request.InputDate.Date;
 
         var candidates = await _context.UsageLogs
             .Where(l => l.InputDate >= day && l.InputDate < day.AddDays(1))
             .ToListAsync();
         var entity = candidates.FirstOrDefault(l =>
-            l.DeviceCode != null && l.DeviceCode.Trim() == storageKey);
+            l.DeviceCode != null && lookupKeys.Contains(l.DeviceCode.Trim()));
 
         if (entity is null)
         {
@@ -103,7 +105,7 @@ public class UsageLogService : IUsageLogService
             };
             _context.UsageLogs.Add(entity);
             await _context.SaveChangesAsync();
-            await _audit.WriteAsync(_currentUser.UserId, $"Nhật ký sử dụng {storageKey}", null);
+            await _audit.WriteAsync(_currentUser.UserId, $"Nhật ký sử dụng TB#{storageKey}", device.Id);
         }
         else
         {
@@ -111,8 +113,10 @@ public class UsageLogService : IUsageLogService
             entity.Sessions = request.Sessions;
             entity.UserId = _currentUser.UserId;
             entity.InputDate = day;
+            // Chuẩn hóa khóa cũ → ID nếu trước đó còn lưu MaTB.
+            entity.DeviceCode = storageKey;
             await _context.SaveChangesAsync();
-            await _audit.WriteAsync(_currentUser.UserId, $"Cập nhật nhật ký sử dụng {storageKey}", null);
+            await _audit.WriteAsync(_currentUser.UserId, $"Cập nhật nhật ký sử dụng TB#{storageKey}", device.Id);
         }
 
         var lookup = await DeviceLookup.BuildAsync(_context);
@@ -122,33 +126,19 @@ public class UsageLogService : IUsageLogService
     private async Task<Device?> FindDeviceAsync(string? codeOrId)
     {
         if (string.IsNullOrWhiteSpace(codeOrId))
-        {
             return null;
-        }
 
         var key = codeOrId.Trim();
         if (int.TryParse(key, out var id))
         {
             var byId = await _context.Devices.AsNoTracking().FirstOrDefaultAsync(d => d.Id == id);
             if (byId != null)
-            {
                 return byId;
-            }
         }
 
+        // Fallback hiếm: vẫn còn MaTB string trong DB.
         return await _context.Devices.AsNoTracking()
             .FirstOrDefaultAsync(d => d.DeviceCode != null && d.DeviceCode.Trim() == key);
-    }
-
-    /// <summary>Legacy InputByDate.MaTB: ma TB hoac ID thiet bi (khi Quanlythietbi.MaTB null).</summary>
-    private static string StorageKeyForDevice(Device device)
-    {
-        if (!string.IsNullOrWhiteSpace(device.DeviceCode))
-        {
-            return device.DeviceCode.Trim();
-        }
-
-        return device.Id.ToString();
     }
 
     private async Task EnsureDeviceScopeAsync(Device device)
@@ -174,9 +164,15 @@ public class UsageLogService : IUsageLogService
             .Select(d => new { d.Id, d.DeviceCode })
             .ToListAsync();
 
-        return devices
-            .Select(d => !string.IsNullOrWhiteSpace(d.DeviceCode) ? d.DeviceCode.Trim() : d.Id.ToString())
-            .ToList();
+        // Khóa theo ID (+ MaTB cũ nếu có) để lọc nhật ký trong phạm vi đơn vị.
+        var keys = new List<string>();
+        foreach (var d in devices)
+        {
+            keys.Add(d.Id.ToString());
+            if (!string.IsNullOrWhiteSpace(d.DeviceCode))
+                keys.Add(d.DeviceCode.Trim());
+        }
+        return keys;
     }
 
     private static UsageLogDto Map(UsageLog l, DeviceLookup lookup)

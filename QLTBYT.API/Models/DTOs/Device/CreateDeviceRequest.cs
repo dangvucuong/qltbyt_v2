@@ -2,7 +2,8 @@ namespace QLTBYT.API.Models.DTOs.Device;
 
 public class CreateDeviceRequest
 {
-    public string DeviceCode { get; set; } = string.Empty;
+    /// <summary>MaTB — tùy chọn; khi trống hệ thống dùng ID thiết bị làm khóa.</summary>
+    public string? DeviceCode { get; set; }
     public string Name { get; set; } = string.Empty;
     public int TypeId { get; set; }
     public int OrganizationId { get; set; }

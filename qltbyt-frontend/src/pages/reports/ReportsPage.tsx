@@ -151,7 +151,7 @@ function ReportGridTab() {
         }}
         columns={[
           {
-            title: 'Mã TB',
+            title: 'Mã / ID',
             dataIndex: 'deviceCode',
             render: (v, row) => <Link to={`/devices/${row.id}`}>{v || row.id}</Link>,
           },

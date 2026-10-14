@@ -256,11 +256,11 @@ public class LegalDocumentService : ILegalDocumentService
         if (!string.IsNullOrEmpty(raw) && int.TryParse(raw, out var deviceId) && deviceId > 0
             && deviceMap.TryGetValue(deviceId, out var info))
         {
-            deviceCode = info.Code;
-            // Giống cũ: hiển thị TenTB; kèm MaTB nếu có
-            deviceDisplay = string.IsNullOrWhiteSpace(info.Code)
-                ? info.Name
-                : $"{info.Code} — {info.Name}";
+            // MaTB null → hiển thị ID thiết bị
+            deviceCode = string.IsNullOrWhiteSpace(info.Code) ? deviceId.ToString() : info.Code;
+            deviceDisplay = string.IsNullOrWhiteSpace(info.Name)
+                ? deviceCode
+                : $"{deviceCode} — {info.Name}";
         }
         else if (!string.IsNullOrEmpty(raw) && raw != "0")
         {

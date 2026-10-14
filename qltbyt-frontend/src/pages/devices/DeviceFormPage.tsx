@@ -121,7 +121,14 @@ function buildPayload(values: Record<string, unknown>, includeDeviceCode: boolea
       ? (values.inspectionExpiryDate as Dayjs).format('YYYY-MM-DD')
       : null,
   };
-  if (includeDeviceCode) payload.deviceCode = values.deviceCode;
+  if (includeDeviceCode) {
+    const code = typeof values.deviceCode === 'string' ? values.deviceCode.trim() : '';
+    if (code) payload.deviceCode = code;
+  }
+  // Thietbichinh: nếu nhập số → coi là ID thiết bị cha.
+  if (typeof values.parentDeviceCode === 'string' && values.parentDeviceCode.trim()) {
+    payload.parentDeviceCode = values.parentDeviceCode.trim();
+  }
   return payload;
 }
 
@@ -288,10 +295,10 @@ export function DeviceFormPage() {
               <Col xs={24} md={8}>
                 <Form.Item
                   name="deviceCode"
-                  label="Mã thiết bị"
-                  rules={[{ required: true, message: 'Nhập mã thiết bị' }]}
+                  label="Mã thiết bị (MaTB)"
+                  tooltip="Tuỳ chọn. Khi để trống, hệ thống dùng ID thiết bị làm khóa thay MaTB."
                 >
-                  <Input placeholder="VD: TB-2024-001" />
+                  <Input placeholder="Tuỳ chọn — để trống sẽ dùng ID" allowClear />
                 </Form.Item>
               </Col>
             )}
@@ -520,7 +527,7 @@ export function DeviceFormPage() {
             <Space direction="vertical" size="middle" style={{ width: '100%' }}>
               {deviceQuery.data?.legalDocumentRef ? (
                 <div>
-                  <FileOutlined style={{ marginRight: 8, color: '#0d9488' }} />
+                  <FileOutlined style={{ marginRight: 8, color: '#1D7ABF' }} />
                   <a
                     href={maintenanceContractUrl(deviceId, deviceQuery.data.legalDocumentRef)}
                     target="_blank"

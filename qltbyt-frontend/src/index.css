@@ -16,7 +16,7 @@ body {
   width: 100%;
   max-width: none;
   box-sizing: border-box;
-  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(180deg, #f4f8fc 0%, #eef3f8 100%);
 }
 
 .app-page-inner {
@@ -70,23 +70,42 @@ body {
 }
 
 .app-sidebar-brand {
-  padding: 20px 20px 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 16px 16px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-sidebar-brand-logo {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  flex-shrink: 0;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+  filter: none;
+}
+
+.app-sidebar-brand-text {
+  min-width: 0;
 }
 
 .app-sidebar-brand-title {
   color: #f8fafc;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1.3;
 }
 
 .app-sidebar-brand-sub {
-  color: #94a3b8;
-  font-size: 12px;
-  margin-top: 4px;
-  line-height: 1.4;
+  color: #93c5e8;
+  font-size: 11px;
+  margin-top: 2px;
+  line-height: 1.35;
 }
 
 .app-header-bar {
@@ -123,12 +142,43 @@ body {
 }
 
 .app-login-hero {
-  background: linear-gradient(145deg, #0f766e 0%, #0c4a6e 55%, #0f172a 100%);
+  background: linear-gradient(145deg, #0a1f3d 0%, #003366 45%, #1d7abf 100%);
   color: #f8fafc;
   padding: 48px 56px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+}
+
+.app-login-hero-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.app-login-hero-logo {
+  width: 96px;
+  height: 76px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: transparent;
+  padding: 0;
+  box-sizing: border-box;
+  filter: drop-shadow(0 6px 16px rgba(0, 40, 80, 0.28));
+}
+
+.app-login-hero-brand-name {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #e0f2fe;
+}
+
+.app-login-hero-brand-tag {
+  font-size: 13px;
+  color: #93c5e8;
+  margin-top: 2px;
 }
 
 .app-login-hero h1 {
@@ -140,7 +190,7 @@ body {
 
 .app-login-hero p {
   font-size: 16px;
-  color: #cbd5e1;
+  color: #dbeafe;
   max-width: 420px;
   line-height: 1.6;
 }
@@ -162,10 +212,51 @@ body {
 
 .app-login-panel {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 32px;
+  padding: 32px 32px 20px;
   background: #f8fafc;
+  position: relative;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.app-login-footer {
+  margin-top: 28px;
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.app-login-footer-copy {
+  font-weight: 600;
+  color: #475569;
+}
+
+.app-login-footer-meta {
+  margin-top: 4px;
+}
+
+.app-login-footer-links {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  align-items: center;
+}
+
+.app-login-footer-links a {
+  color: #1d7abf;
+  text-decoration: none;
+}
+
+.app-login-footer-links a:hover {
+  text-decoration: underline;
 }
 
 .app-login-card {

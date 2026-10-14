@@ -8,8 +8,8 @@ public class CreateDeviceRequestValidator : AbstractValidator<CreateDeviceReques
     public CreateDeviceRequestValidator()
     {
         RuleFor(x => x.DeviceCode)
-            .NotEmpty().WithMessage("Mã thiết bị không được để trống.")
-            .MaximumLength(50).WithMessage("Mã thiết bị tối đa 50 ký tự.");
+            .MaximumLength(50).WithMessage("Mã thiết bị tối đa 50 ký tự.")
+            .When(x => !string.IsNullOrWhiteSpace(x.DeviceCode));
 
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Tên thiết bị không được để trống.")

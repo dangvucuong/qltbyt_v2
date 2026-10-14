@@ -71,7 +71,8 @@ public class DeviceExpiryNotificationJob : BackgroundService
         if (adminIds.Count == 0)
             return;
 
-        var summary = string.Join(", ", expiring.Select(e => $"{e.DeviceCode} ({e.InspectionExpiryDate:dd/MM/yyyy})"));
+        var summary = string.Join(", ", expiring.Select(e =>
+            $"#{e.Id}{(string.IsNullOrWhiteSpace(e.DeviceCode) ? "" : $"/{e.DeviceCode.Trim()}")} ({e.InspectionExpiryDate:dd/MM/yyyy})"));
         await notifications.NotifyUsersAsync(
             "Thiết bị sắp hết hạn kiểm định",
             summary,

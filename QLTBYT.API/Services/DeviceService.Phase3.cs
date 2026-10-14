@@ -1,6 +1,7 @@
 using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
 using QLTBYT.API.Data;
+using QLTBYT.API.Helpers;
 using QLTBYT.API.Models.Domain;
 using QLTBYT.API.Models.DTOs.Device;
 using QLTBYT.API.Models.DTOs.Event;
@@ -31,7 +32,8 @@ public partial class DeviceService
             Keyword = "Chuyển giao"
         });
 
-        await _audit.WriteAsync(_currentUser.UserId, $"Chuyển giao TB {device.DeviceCode}", id);
+        await _audit.WriteAsync(_currentUser.UserId,
+            $"Chuyển giao TB {DeviceIdentityHelper.DisplayCode(id, device.DeviceCode)}", id);
         return await GetDeviceByIdAsync(id);
     }
 
@@ -41,8 +43,8 @@ public partial class DeviceService
         if (device is null || !IsDeviceAllowed(device))
             return new List<DeviceHistoryItemDto>();
 
-        var code = device.DeviceCode ?? string.Empty;
         var items = new List<DeviceHistoryItemDto>();
+        var usageKeys = DeviceIdentityHelper.LookupKeys(id, device.DeviceCode);
 
         var events = await _context.DeviceEvents.AsNoTracking()
             .Where(e => e.DeviceId == id)
@@ -57,20 +59,19 @@ public partial class DeviceService
             Actor = e.AccountUsername
         }));
 
-        if (!string.IsNullOrEmpty(code))
-        {
-            var usage = await _context.UsageLogs.AsNoTracking()
-                .Where(u => u.DeviceCode == code)
-                .OrderByDescending(u => u.InputDate)
-                .Take(30)
-                .ToListAsync();
-            items.AddRange(usage.Select(u => new DeviceHistoryItemDto
+        var usageRows = await _context.UsageLogs.AsNoTracking()
+            .OrderByDescending(u => u.InputDate)
+            .Take(2000)
+            .ToListAsync();
+        items.AddRange(usageRows
+            .Where(u => u.DeviceCode != null && usageKeys.Contains(u.DeviceCode.Trim()))
+            .Take(30)
+            .Select(u => new DeviceHistoryItemDto
             {
                 Type = "Nhật ký sử dụng",
                 Content = $"Gio: {u.Hours}, Ca: {u.Sessions}",
                 Timestamp = u.InputDate
             }));
-        }
 
         var audits = await _context.SystemAuditLogs.AsNoTracking()
             .Where(a => a.DeviceId == id)
@@ -167,11 +168,13 @@ public partial class DeviceService
 
         foreach (var row in rows)
         {
-            var code = row.Cell(1).GetString().Trim();
+            var codeRaw = row.Cell(1).GetString().Trim();
             var name = row.Cell(2).GetString().Trim();
-            if (string.IsNullOrEmpty(code) || string.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(name))
                 continue;
-            if (await _context.Devices.AnyAsync(d => d.DeviceCode == code))
+
+            string? code = string.IsNullOrEmpty(codeRaw) ? null : codeRaw;
+            if (code != null && await _context.Devices.AnyAsync(d => d.DeviceCode == code))
                 continue;
 
             _context.Devices.Add(new Device

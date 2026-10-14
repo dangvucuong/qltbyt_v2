@@ -154,7 +154,7 @@ export function DeviceListPage() {
       <div className="app-filter-bar">
         <Space wrap size="middle">
           <Input.Search
-            placeholder="Tìm mã TB, tên thiết bị..."
+            placeholder="Tìm ID, mã định danh, serial, tên..."
             allowClear
             defaultValue={search}
             enterButton={<SearchOutlined />}
@@ -165,7 +165,7 @@ export function DeviceListPage() {
               else next.delete('search');
               setParams(next);
             }}
-            style={{ width: 280 }}
+            style={{ width: 340 }}
           />
           <Select
             placeholder="Đơn vị sử dụng"
@@ -256,11 +256,13 @@ export function DeviceListPage() {
           }}
           columns={[
             {
-              title: 'Mã TB',
+              title: 'Mã / ID',
               width: 110,
               ellipsis: true,
               render: (_, row) => (
-                <Link to={`/devices/${row.id}`}>{row.deviceCode || row.id}</Link>
+                <Link to={`/devices/${row.id}`}>
+                  {row.deviceCode?.trim() || String(row.id)}
+                </Link>
               ),
             },
             {

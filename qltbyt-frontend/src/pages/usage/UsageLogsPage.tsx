@@ -15,13 +15,16 @@ function formatLogDate(value?: string) {
   return d.isValid() ? d.format('DD/MM/YYYY') : '—';
 }
 
+/** Luôn dùng ID thiết bị (thay MaTB) cho API nhật ký sử dụng. */
 function devicePickerValue(d: DeviceListItem): string {
-  const code = d.deviceCode?.trim();
-  return code ? code : String(d.id);
+  return String(d.id);
 }
 
 function deviceLabel(d: DeviceListItem) {
-  const code = d.deviceCode?.trim() || `#${d.id}`;
+  const code =
+    d.deviceCode?.trim() && d.deviceCode.trim() !== String(d.id)
+      ? `${d.id} / ${d.deviceCode.trim()}`
+      : String(d.id);
   const name = d.name?.trim();
   return name ? `${code} — ${name}` : code;
 }

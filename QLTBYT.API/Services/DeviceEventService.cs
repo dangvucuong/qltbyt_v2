@@ -54,9 +54,12 @@ public class DeviceEventService : IDeviceEventService
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             var term = query.Search.Trim();
+            var idTerm = int.TryParse(term, out var parsedId) ? parsedId : (int?)null;
             queryable = queryable.Where(e =>
+                (idTerm.HasValue && e.DeviceId == idTerm.Value) ||
                 (e.Content != null && e.Content.Contains(term)) ||
                 (e.Device != null && e.Device.DeviceCode != null && e.Device.DeviceCode.Contains(term)) ||
+                (e.Device != null && e.Device.IdentityCode != null && e.Device.IdentityCode.Contains(term)) ||
                 (e.Device != null && e.Device.Name != null && e.Device.Name.Contains(term)));
         }
 
@@ -291,7 +294,9 @@ public class DeviceEventService : IDeviceEventService
     {
         Id = e.Id,
         DeviceId = e.DeviceId,
-        DeviceCode = e.Device?.DeviceCode,
+        DeviceCode = e.DeviceId.HasValue
+            ? DeviceIdentityHelper.DisplayCode(e.DeviceId.Value, e.Device?.DeviceCode)
+            : e.Device?.DeviceCode,
         DeviceName = e.Device?.Name,
         TypeId = e.TypeId,
         TypeName = DeviceEventLabels.GetTypeName(e.TypeId),
@@ -310,7 +315,9 @@ public class DeviceEventService : IDeviceEventService
         {
             Id = e.Id,
             DeviceId = e.DeviceId,
-            DeviceCode = e.Device?.DeviceCode,
+            DeviceCode = e.DeviceId.HasValue
+                ? DeviceIdentityHelper.DisplayCode(e.DeviceId.Value, e.Device?.DeviceCode)
+                : e.Device?.DeviceCode,
             DeviceName = e.Device?.Name,
             TypeId = e.TypeId,
             TypeName = DeviceEventLabels.GetTypeName(e.TypeId),

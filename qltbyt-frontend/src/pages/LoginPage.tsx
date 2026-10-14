@@ -62,6 +62,17 @@ export function LoginPage() {
   return (
     <div className="app-login-root">
       <div className="app-login-hero">
+        <div className="app-login-hero-brand">
+          <img
+            className="app-login-hero-logo"
+            src="/brand/dvc-techflow-logo.png"
+            alt="DVC Techflow"
+          />
+          <div>
+            <div className="app-login-hero-brand-name">DVC TECHFLOW</div>
+            <div className="app-login-hero-brand-tag">Làm chủ công nghệ – Làm chủ tương lai</div>
+          </div>
+        </div>
         <h1>Hệ thống quản lý thiết bị y tế</h1>
         <p>
           Theo dõi tài sản, kiểm định và vận hành thiết bị trên một nền tảng thống nhất,
@@ -107,6 +118,23 @@ export function LoginPage() {
             Tài khoản demo: admin / kythuat / user — mật khẩu Sample@123
           </Typography.Paragraph>
         </Card>
+        <footer className="app-login-footer">
+          <div className="app-login-footer-copy">
+            © {new Date().getFullYear()} DVC TECHFLOW. Bảo lưu mọi quyền.
+          </div>
+          <div className="app-login-footer-meta">
+            Công ty cổ phần giải pháp công nghệ và chuyển đổi số DVC
+          </div>
+          <div className="app-login-footer-links">
+            <a href="https://dvctechflow.com" target="_blank" rel="noreferrer">
+              dvctechflow.com
+            </a>
+            <span>·</span>
+            <a href="tel:0962839367">Hotline 0962 8393 67</a>
+            <span>·</span>
+            <a href="mailto:info@dvctechflow.com">info@dvctechflow.com</a>
+          </div>
+        </footer>
       </div>
     </div>
   );

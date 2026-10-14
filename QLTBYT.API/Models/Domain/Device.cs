@@ -89,6 +89,10 @@ public class Device
     [Column("Dongia")]
     public string? UnitPrice { get; set; }
 
+    /// <summary>Chi phí xử lý / vận hành (legacy ChiphiXuly).</summary>
+    [Column("ChiphiXuly")]
+    public double? ProcessingCost { get; set; }
+
     [Column("MocTGBT")]
     public string? MaintenanceDueMarker { get; set; }
 

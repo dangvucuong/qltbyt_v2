@@ -1,12 +1,28 @@
 import type { ThemeConfig } from 'antd';
 
+/** Tone màu theo brand DVC Techflow (dvctechflow.com / logo). */
+export const brand = {
+  primary: '#1D7ABF',
+  primaryBright: '#2698D4',
+  primaryDeep: '#216CB5',
+  navy: '#003366',
+  navyDark: '#0a1628',
+  sidebarFrom: '#0a1f3d',
+  sidebarTo: '#0c2d5c',
+  info: '#2698D4',
+  success: '#059669',
+  warning: '#d97706',
+  error: '#dc2626',
+} as const;
+
 export const appTheme: ThemeConfig = {
   token: {
-    colorPrimary: '#0d9488',
-    colorInfo: '#0284c7',
-    colorSuccess: '#059669',
-    colorWarning: '#d97706',
-    colorError: '#dc2626',
+    colorPrimary: brand.primary,
+    colorInfo: brand.info,
+    colorSuccess: brand.success,
+    colorWarning: brand.warning,
+    colorError: brand.error,
+    colorLink: brand.primary,
     borderRadius: 8,
     fontFamily: "'Be Vietnam Pro', system-ui, -apple-system, sans-serif",
     colorBgLayout: '#f1f5f9',
@@ -15,19 +31,21 @@ export const appTheme: ThemeConfig = {
     Layout: {
       headerBg: '#ffffff',
       bodyBg: '#f1f5f9',
+      siderBg: brand.sidebarFrom,
     },
     Menu: {
-      darkItemSelectedBg: '#0d9488',
+      darkItemBg: 'transparent',
+      darkItemSelectedBg: brand.primary,
       darkItemSelectedColor: '#fff',
-      darkItemHoverBg: 'rgba(255,255,255,0.08)',
+      darkItemHoverBg: 'rgba(38, 152, 212, 0.18)',
     },
     Table: {
-      headerBg: '#f8fafc',
-      headerColor: '#475569',
-      borderColor: '#e2e8f0',
+      headerBg: '#f0f7fc',
+      headerColor: '#1e3a5f',
+      borderColor: '#dbe7f2',
     },
     Button: {
-      primaryShadow: '0 2px 0 rgba(13, 148, 136, 0.15)',
+      primaryShadow: '0 2px 0 rgba(29, 122, 191, 0.18)',
     },
   },
 };

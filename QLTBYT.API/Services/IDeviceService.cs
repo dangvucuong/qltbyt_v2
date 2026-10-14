@@ -16,6 +16,7 @@ public interface IDeviceService
     Task<string> UploadMaintenanceContractAsync(int deviceId, Stream content, string fileName);
     Task<DeviceDetailDto?> TransferDeviceAsync(int id, TransferDeviceRequest request);
     Task<List<DeviceHistoryItemDto>> GetDeviceHistoryAsync(int id);
+    Task<DeviceLifecycleReportDto?> GetLifecycleReportAsync(int id);
     Task<DeviceDetailDto?> UpdateQrAsync(int id, UpdateDeviceQrRequest request);
     Task<List<DeviceSupplyDto>> GetSuppliesAsync(int deviceId);
     Task<DeviceSupplyDto> AddSupplyAsync(int deviceId, CreateDeviceSupplyRequest request);

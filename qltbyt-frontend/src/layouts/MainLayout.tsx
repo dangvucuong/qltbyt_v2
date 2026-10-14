@@ -84,12 +84,14 @@ export function MainLayout() {
         breakpoint="lg"
         collapsedWidth={0}
         style={{
-          background: 'linear-gradient(180deg, #0f172a 0%, #1e293b 100%)',
+          background: 'linear-gradient(180deg, #0a1f3d 0%, #0c2d5c 55%, #123a6e 100%)',
         }}
       >
         <div className="app-sidebar-brand">
-          <div className="app-sidebar-brand-title">QLTBYT</div>
-          <div className="app-sidebar-brand-sub">Quản lý thiết bị y tế</div>
+          <div className="app-sidebar-brand-text">
+            <div className="app-sidebar-brand-title">QLTBYT</div>
+            <div className="app-sidebar-brand-sub">DVC Techflow · Thiết bị y tế</div>
+          </div>
         </div>
         <Menu
           theme="dark"
@@ -219,7 +221,7 @@ export function MainLayout() {
                 <Button type="text" icon={<UserOutlined />}>Tài khoản</Button>
               </Link>
               <span className="app-user-chip">
-                <Avatar size="small" icon={<UserOutlined />} style={{ background: '#0d9488' }} />
+                <Avatar size="small" icon={<UserOutlined />} style={{ background: '#1D7ABF' }} />
                 <Typography.Text style={{ fontSize: 13 }}>
                   {user?.fullName || user?.username}
                 </Typography.Text>

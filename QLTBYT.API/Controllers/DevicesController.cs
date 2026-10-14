@@ -276,6 +276,16 @@ public class DevicesController : ControllerBase
         return Ok(ApiResponse<IReadOnlyList<DeviceHistoryItemDto>>.CreateSuccess(list));
     }
 
+    /// <summary>Báo cáo phân tích vòng đời thiết bị (DeviceLifecycleReport).</summary>
+    [HttpGet("{id:int}/lifecycle")]
+    public async Task<ActionResult<ApiResponse<DeviceLifecycleReportDto>>> GetLifecycle(int id)
+    {
+        var report = await _deviceService.GetLifecycleReportAsync(id);
+        if (report is null)
+            return NotFound(ApiResponse<DeviceLifecycleReportDto>.CreateFail("Không tìm thấy thiết bị."));
+        return Ok(ApiResponse<DeviceLifecycleReportDto>.CreateSuccess(report));
+    }
+
     [HttpPut("{id:int}/qr")]
     public async Task<ActionResult<ApiResponse<DeviceDetailDto>>> UpdateQr(int id, [FromBody] UpdateDeviceQrRequest request)
     {
@@ -327,13 +337,10 @@ public class DevicesController : ControllerBase
         if (device is null)
             return NotFound(ApiResponse<IReadOnlyList<UsageLogDto>>.CreateFail("Không tìm thấy thiết bị."));
 
-        var deviceKey = !string.IsNullOrWhiteSpace(device.DeviceCode)
-            ? device.DeviceCode!.Trim()
-            : id.ToString();
-
+        // InputByDate.MaTB lưu ID thiết bị (thay MaTB).
         var list = await _usageLogService.GetLogsAsync(new UsageLogQueryParams
         {
-            DeviceCode = deviceKey,
+            DeviceCode = id.ToString(),
             FromDate = fromDate,
             ToDate = toDate,
         });
@@ -350,9 +357,7 @@ public class DevicesController : ControllerBase
         if (device is null)
             return NotFound(ApiResponse<UsageLogDto>.CreateFail("Không tìm thấy thiết bị."));
 
-        request.DeviceCode = !string.IsNullOrWhiteSpace(device.DeviceCode)
-            ? device.DeviceCode!.Trim()
-            : id.ToString();
+        request.DeviceCode = id.ToString();
 
         try
         {

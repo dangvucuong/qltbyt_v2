@@ -38,6 +38,7 @@ import { DeviceReportModal } from '@/components/DeviceReportModal';
 import { TransferDeviceModal } from '@/components/TransferDeviceModal';
 import { DeviceCameraCapture } from '@/components/DeviceCameraCapture';
 import { DeviceUsageLogsPanel } from '@/components/DeviceUsageLogsPanel';
+import { DeviceLifecyclePanel } from '@/components/DeviceLifecyclePanel';
 import { useAuthStore } from '@/store/authStore';
 import { openPrintHtml } from '@/utils/openPrintHtml';
 import { apiUrl } from '@/utils/apiBase';
@@ -278,16 +279,17 @@ export function DeviceDetailPage() {
   });
 
   const createChildMutation = useMutation({
-    mutationFn: async (values: { deviceCode: string; name: string }) => {
+    mutationFn: async (values: { deviceCode?: string; name: string }) => {
       const parent = deviceQuery.data;
-      if (!parent?.deviceCode) throw new Error('no parent');
+      if (!parent?.id) throw new Error('no parent');
+      // Thietbichinh lưu ID thiết bị cha (thay MaTB).
       await axiosClient.post('/api/devices', {
-        deviceCode: values.deviceCode.trim(),
+        deviceCode: values.deviceCode?.trim() || undefined,
         name: values.name.trim(),
         typeId: parent.typeId ?? 1,
         organizationId: parent.organizationId ?? 1,
         statusId: parent.statusId ?? 1,
-        parentDeviceCode: parent.deviceCode,
+        parentDeviceCode: String(parent.id),
       });
     },
     onSuccess: () => {
@@ -352,10 +354,10 @@ export function DeviceDetailPage() {
     <div>
       <PageHeader
         title={d.name || 'Chi tiết thiết bị'}
-        subtitle={d.deviceCode ? `Mã: ${d.deviceCode}` : undefined}
+        subtitle={`ID: ${d.id}${d.deviceCode && d.deviceCode !== String(d.id) ? ` · Mã: ${d.deviceCode}` : ''}`}
         crumbs={[
           { title: 'Thiết bị', href: '/devices' },
-          { title: d.deviceCode || 'Chi tiết' },
+          { title: d.deviceCode || String(d.id) },
         ]}
         extra={
           <Space>
@@ -412,7 +414,10 @@ export function DeviceDetailPage() {
       />
       <Card className="app-card" title="Thông tin chung">
         <Descriptions bordered column={{ xs: 1, sm: 2 }} size="middle">
-          <Descriptions.Item label="Mã thiết bị">{d.deviceCode || '—'}</Descriptions.Item>
+          <Descriptions.Item label="ID thiết bị">{d.id}</Descriptions.Item>
+          <Descriptions.Item label="Mã thiết bị (MaTB)">
+            {d.deviceCode && d.deviceCode !== String(d.id) ? d.deviceCode : '— (dùng ID)'}
+          </Descriptions.Item>
           <Descriptions.Item label="Mã định danh">{d.identityCode || '—'}</Descriptions.Item>
           <Descriptions.Item label="Tên thiết bị" span={2}>{d.name || '—'}</Descriptions.Item>
           <Descriptions.Item label="Tên chuyên ngành">{d.specializedName || '—'}</Descriptions.Item>
@@ -482,7 +487,7 @@ export function DeviceDetailPage() {
         <Space direction="vertical" size="middle" style={{ width: '100%' }}>
           {d.legalDocumentRef ? (
             <div>
-              <FileOutlined style={{ marginRight: 8, color: '#0d9488' }} />
+              <FileOutlined style={{ marginRight: 8, color: '#1D7ABF' }} />
               <a
                 href={maintenanceContractUrl(deviceId, d.legalDocumentRef)}
                 target="_blank"
@@ -519,6 +524,11 @@ export function DeviceDetailPage() {
         <Tabs
           items={[
             {
+              key: 'lifecycle',
+              label: 'Vòng đời thiết bị',
+              children: <DeviceLifecyclePanel deviceId={deviceId} />,
+            },
+            {
               key: 'children',
               label: 'Thiết bị con',
               children: (
@@ -530,11 +540,8 @@ export function DeviceDetailPage() {
                         layout="inline"
                         onFinish={(v) => createChildMutation.mutate(v)}
                       >
-                        <Form.Item
-                          name="deviceCode"
-                          rules={[{ required: true, message: 'Mã TB' }]}
-                        >
-                          <Input placeholder="Mã thiết bị con" style={{ width: 160 }} />
+                        <Form.Item name="deviceCode">
+                          <Input placeholder="Mã TB (tuỳ chọn)" style={{ width: 160 }} />
                         </Form.Item>
                         <Form.Item name="name" rules={[{ required: true, message: 'Tên TB' }]}>
                           <Input placeholder="Tên thiết bị" style={{ width: 220 }} />
@@ -559,7 +566,7 @@ export function DeviceDetailPage() {
                       dataSource={childrenQuery.data ?? []}
                       renderItem={(item) => (
                         <List.Item>
-                          <Link to={`/devices/${item.id}`}>{item.deviceCode}</Link>
+                          <Link to={`/devices/${item.id}`}>{item.deviceCode || item.id}</Link>
                           <span style={{ marginLeft: 8, color: '#64748b' }}>{item.name}</span>
                         </List.Item>
                       )}
@@ -605,7 +612,7 @@ export function DeviceDetailPage() {
                             : undefined
                         }
                       >
-                        <FileOutlined style={{ marginRight: 8, color: '#0d9488' }} />
+                        <FileOutlined style={{ marginRight: 8, color: '#1D7ABF' }} />
                         <a href={fileUrl(f.path)} target="_blank" rel="noreferrer">
                           {f.description || f.path}
                         </a>
